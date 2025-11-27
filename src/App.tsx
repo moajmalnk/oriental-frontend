@@ -23,6 +23,7 @@ import { Navigate } from "react-router-dom";
 import BatchView from "./pages/BatchView";
 import StudentResultView from "./pages/StudentResultView";
 import AdmissionForm from "./pages/AdmissionForm";
+import AdmissionThankYou from "./pages/AdmissionThankYou";
 import Admissions from "./pages/Admissions";
 import AdmissionView from "./pages/AdmissionView";
 import AdmissionApprove from "./pages/AdmissionApprove";
@@ -40,6 +41,7 @@ const App = () => (
             <Route path="/login" element={<Login />} />
             <Route path="/" element={<Index />} />
             <Route path="/admission" element={<AdmissionForm />} />
+            <Route path="/admission-thank-you/:id" element={<AdmissionThankYou />} />
             <Route
               path="/users"
               element={

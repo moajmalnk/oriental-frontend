@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -32,6 +33,7 @@ import {
 } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { ArrowLeft, Upload, Image as ImageIcon, X } from "lucide-react";
 
 // Blood groups array
 const bloodGroups = ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"];
@@ -255,10 +257,13 @@ const admissionFormSchema = z.object({
 type AdmissionFormValues = z.infer<typeof admissionFormSchema>;
 
 function AdmissionForm() {
+  const navigate = useNavigate();
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [signaturePreview, setSignaturePreview] = useState<string | null>(null);
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
+  const [isDragging, setIsDragging] = useState(false);
+  const [isDraggingSignature, setIsDraggingSignature] = useState(false);
 
   const form = useForm<AdmissionFormValues>({
     resolver: zodResolver(admissionFormSchema),
@@ -290,96 +295,152 @@ function AdmissionForm() {
 
   // Handle signature file change
   const handleSignatureChange = (
-    e: React.ChangeEvent<HTMLInputElement>,
+    file: File | null,
     onChange: (value: File) => void
   ) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      // Validate image file type
-      const validImageTypes = [
-        "image/jpeg",
-        "image/jpg",
-        "image/png",
-        "image/gif",
-        "image/webp",
-        "image/bmp",
-      ];
-      if (!validImageTypes.includes(file.type)) {
-        toast({
-          title: "Invalid File Type",
-          description:
-            "Please upload a valid image file (JPEG, PNG, GIF, WebP, BMP)",
-          variant: "destructive",
-        });
-        return;
-      }
+    if (!file) return;
 
-      // Validate file size
-      if (file.size > 10 * 1024 * 1024) {
-        toast({
-          title: "File Too Large",
-          description: "File size must be less than 10MB",
-          variant: "destructive",
-        });
-        return;
-      }
-
-      // Create preview
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setSignaturePreview(reader.result as string);
-      };
-      reader.readAsDataURL(file);
-
-      onChange(file);
+    // Validate image file type
+    const validImageTypes = [
+      "image/jpeg",
+      "image/jpg",
+      "image/png",
+      "image/gif",
+      "image/webp",
+      "image/bmp",
+    ];
+    if (!validImageTypes.includes(file.type)) {
+      toast({
+        title: "Invalid File Type",
+        description:
+          "Please upload a valid image file (JPEG, PNG, GIF, WebP, BMP)",
+        variant: "destructive",
+      });
+      return;
     }
+
+    // Validate file size
+    if (file.size > 10 * 1024 * 1024) {
+      toast({
+        title: "File Too Large",
+        description: "File size must be less than 10MB",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Create preview
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setSignaturePreview(reader.result as string);
+    };
+    reader.readAsDataURL(file);
+
+    onChange(file);
+  };
+
+  // Handle drag and drop for signature
+  const handleSignatureDragOver = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    setIsDraggingSignature(true);
+  };
+
+  const handleSignatureDragLeave = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    setIsDraggingSignature(false);
+  };
+
+  const handleSignatureDrop = (
+    e: React.DragEvent<HTMLDivElement>,
+    onChange: (value: File) => void
+  ) => {
+    e.preventDefault();
+    setIsDraggingSignature(false);
+    const file = e.dataTransfer.files?.[0];
+    if (file) {
+      handleSignatureChange(file, onChange);
+    }
+  };
+
+  // Remove signature
+  const handleRemoveSignature = (onChange: (value: undefined) => void) => {
+    setSignaturePreview(null);
+    onChange(undefined);
   };
 
   // Handle photo file change
   const handlePhotoChange = (
-    e: React.ChangeEvent<HTMLInputElement>,
+    file: File | null,
     onChange: (value: File) => void
   ) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      // Validate image file type
-      const validImageTypes = [
-        "image/jpeg",
-        "image/jpg",
-        "image/png",
-        "image/gif",
-        "image/webp",
-        "image/bmp",
-      ];
-      if (!validImageTypes.includes(file.type)) {
-        toast({
-          title: "Invalid File Type",
-          description:
-            "Please upload a valid image file (JPEG, PNG, GIF, WebP, BMP)",
-          variant: "destructive",
-        });
-        return;
-      }
+    if (!file) return;
 
-      // Validate file size
-      if (file.size > 10 * 1024 * 1024) {
-        toast({
-          title: "File Too Large",
-          description: "File size must be less than 10MB",
-          variant: "destructive",
-        });
-        return;
-      }
-
-      // Create preview
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setPhotoPreview(reader.result as string);
-      };
-      reader.readAsDataURL(file);
-
-      onChange(file);
+    // Validate image file type
+    const validImageTypes = [
+      "image/jpeg",
+      "image/jpg",
+      "image/png",
+      "image/gif",
+      "image/webp",
+      "image/bmp",
+    ];
+    if (!validImageTypes.includes(file.type)) {
+      toast({
+        title: "Invalid File Type",
+        description:
+          "Please upload a valid image file (JPEG, PNG, GIF, WebP, BMP)",
+        variant: "destructive",
+      });
+      return;
     }
+
+    // Validate file size
+    if (file.size > 10 * 1024 * 1024) {
+      toast({
+        title: "File Too Large",
+        description: "File size must be less than 10MB",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Create preview
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setPhotoPreview(reader.result as string);
+    };
+    reader.readAsDataURL(file);
+
+    onChange(file);
+  };
+
+  // Handle drag and drop
+  const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    setIsDragging(false);
+  };
+
+  const handleDrop = (
+    e: React.DragEvent<HTMLDivElement>,
+    onChange: (value: File) => void
+  ) => {
+    e.preventDefault();
+    setIsDragging(false);
+    const file = e.dataTransfer.files?.[0];
+    if (file) {
+      handlePhotoChange(file, onChange);
+    }
+  };
+
+  // Remove photo
+  const handleRemovePhoto = (onChange: (value: undefined) => void) => {
+    setPhotoPreview(null);
+    onChange(undefined);
   };
 
   const onSubmit = async (data: AdmissionFormValues) => {
@@ -413,22 +474,22 @@ function AdmissionForm() {
       formData.append("student_signature", data.studentSignature);
       formData.append("student_photo", data.studentPhoto);
 
-      // TODO: Replace with actual API endpoint when available
-      await api.post("/api/admissions/create/", formData, {
+      // Submit admission form
+      const response = await api.post("/api/admissions/create/", formData, {
         headers: {
           "Content-Type": "multipart/form-data",
         },
       });
 
-      toast({
-        title: "Success",
-        description: "Admission form submitted successfully",
-      });
+      // Extract admission ID from response
+      const admissionId = response.data?.id;
 
-      // Reset form
-      form.reset();
-      setSignaturePreview(null);
-      setPhotoPreview(null);
+      if (!admissionId) {
+        throw new Error("Admission ID not found in response");
+      }
+
+      // Navigate to thank you page with admission ID
+      navigate(`/admission-thank-you/${admissionId}`);
     } catch (error: any) {
       console.error("Error submitting admission form:", error);
       toast({
@@ -450,19 +511,29 @@ function AdmissionForm() {
         <ThemeToggle />
       </div>
       <div className="container mx-auto max-w-6xl py-8 px-4">
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={() => navigate(-1)}
+          className="mt-1 ml-3 mb-3 hover:text-blue-500 hover:bg-transparent"
+        >
+          <ArrowLeft className="h-5 w-5" /> Go Back
+        </Button>
         <div className="mb-10 space-y-6">
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-widest text-primary/80">
-              2025 Admission Drive
-            </p>
-            <h1 className="mt-2 text-3xl font-bold tracking-tight text-foreground">
-              Admission Form
-            </h1>
-            <p className="mt-2 max-w-3xl text-muted-foreground">
-              Set aside a few minutes to carefully complete all sections. The
-              more accurate your responses, the faster we can process your
-              application.
-            </p>
+          <div className="flex items-start gap-4">
+            <div className="flex-1">
+              <p className="text-xs font-semibold uppercase tracking-widest text-primary/80">
+                2025 Admission Drive
+              </p>
+              <h1 className="mt-2 text-3xl font-bold tracking-tight text-foreground">
+                Admission Form
+              </h1>
+              <p className="mt-2 max-w-3xl text-muted-foreground">
+                Set aside a few minutes to carefully complete all sections. The
+                more accurate your responses, the faster we can process your
+                application.
+              </p>
+            </div>
           </div>
 
           <div className="grid gap-4 lg:grid-cols-2">
@@ -487,9 +558,9 @@ function AdmissionForm() {
                   Need help? Write to{" "}
                   <a
                     className="text-primary underline underline-offset-4"
-                    href="mailto:admissions@orientalacademy.com"
+                    href="mailto:info@kugoriental.com"
                   >
-                    admissions@orientalacademy.com
+                    info@kugoriental.com
                   </a>{" "}
                   and we&apos;ll get back to you.
                 </p>
@@ -788,20 +859,103 @@ function AdmissionForm() {
                     <FormItem>
                       <FormLabel>Your Photo</FormLabel>
                       <FormControl>
-                        <div className="space-y-2">
-                          <Input
-                            type="file"
-                            accept="image/*"
-                            {...fieldProps}
-                            onChange={(e) => handlePhotoChange(e, onChange)}
-                          />
-                          {photoPreview && (
-                            <div className="mt-2">
-                              <img
-                                src={photoPreview}
-                                alt="Photo preview"
-                                className="max-w-xs h-32 rounded border object-contain"
+                        <div className="space-y-3">
+                          {photoPreview ? (
+                            <div className="relative group">
+                              <div className="relative w-full max-w-xs mx-auto">
+                                <div
+                                  className={`relative aspect-square w-full max-w-[200px] mx-auto rounded-lg border-2 border-border overflow-hidden bg-muted/50 cursor-pointer transition-all ${
+                                    isDragging
+                                      ? "border-primary scale-[1.02]"
+                                      : "hover:border-primary"
+                                  }`}
+                                  onDragOver={handleDragOver}
+                                  onDragLeave={handleDragLeave}
+                                  onDrop={(e) => handleDrop(e, onChange)}
+                                >
+                                  <input
+                                    type="file"
+                                    accept="image/*"
+                                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+                                    {...fieldProps}
+                                    onChange={(e) => {
+                                      const file = e.target.files?.[0] || null;
+                                      handlePhotoChange(file, onChange);
+                                    }}
+                                  />
+                                  <img
+                                    src={photoPreview}
+                                    alt="Photo preview"
+                                    className="w-full h-full object-cover"
+                                  />
+                                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors duration-200 flex items-center justify-center">
+                                    <div className="opacity-0 group-hover:opacity-100 transition-opacity">
+                                      <Upload className="h-6 w-6 text-white" />
+                                    </div>
+                                  </div>
+                                  <Button
+                                    type="button"
+                                    variant="destructive"
+                                    size="icon"
+                                    className="absolute top-2 right-2 h-7 w-7 rounded-full shadow-lg opacity-0 group-hover:opacity-100 transition-opacity z-20"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleRemovePhoto(onChange);
+                                    }}
+                                  >
+                                    <X className="h-3.5 w-3.5" />
+                                  </Button>
+                                </div>
+                              </div>
+                              <p className="text-xs text-center text-muted-foreground mt-2">
+                                Click the photo or drag a new one to replace
+                              </p>
+                            </div>
+                          ) : (
+                            <div
+                              className={`relative border-2 border-dashed rounded-lg transition-all duration-200 ${
+                                isDragging
+                                  ? "border-primary bg-primary/5 scale-[1.02]"
+                                  : "border-border hover:border-primary/50 hover:bg-muted/50"
+                              }`}
+                              onDragOver={handleDragOver}
+                              onDragLeave={handleDragLeave}
+                              onDrop={(e) => handleDrop(e, onChange)}
+                            >
+                              <input
+                                type="file"
+                                accept="image/*"
+                                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+                                {...fieldProps}
+                                onChange={(e) => {
+                                  const file = e.target.files?.[0] || null;
+                                  handlePhotoChange(file, onChange);
+                                }}
                               />
+                              <div className="flex flex-col items-center justify-center p-8 text-center">
+                                <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-primary/10">
+                                  <ImageIcon className="h-8 w-8 text-primary" />
+                                </div>
+                                <div className="space-y-2">
+                                  <p className="text-sm font-medium text-foreground">
+                                    <span className="text-primary">
+                                      Click to upload
+                                    </span>{" "}
+                                    or drag and drop
+                                  </p>
+                                  <p className="text-xs text-muted-foreground">
+                                    Passport-size photo (JPEG, PNG, GIF, WebP,
+                                    BMP)
+                                  </p>
+                                  <p className="text-xs text-muted-foreground">
+                                    Max file size: 10MB
+                                  </p>
+                                </div>
+                                <div className="mt-4 flex items-center gap-2 text-xs text-muted-foreground">
+                                  <Upload className="h-4 w-4" />
+                                  <span>Drop your photo here</span>
+                                </div>
+                              </div>
                             </div>
                           )}
                         </div>
@@ -824,7 +978,7 @@ function AdmissionForm() {
               </CardHeader>
               <CardContent className="space-y-6 pt-6">
                 <div className="rounded-lg border border-dashed border-primary/20 bg-background p-4 text-sm text-muted-foreground">
-                    Use your current communication address. 
+                  Use your current communication address.
                 </div>
                 <FormField
                   control={form.control}
@@ -936,7 +1090,11 @@ function AdmissionForm() {
                 <div className="rounded-lg border border-dashed border-primary/20 bg-background p-4 text-sm text-muted-foreground">
                   Mention the board and passing year of the most recent exam you
                   completed. Upload a clear scan of your signature written in
-                  blue or black ink.
+                  blue or black ink on a{" "}
+                  <strong className="text-foreground">
+                    white or transparent background
+                  </strong>{" "}
+                  for effective printing.
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <FormField
@@ -985,39 +1143,125 @@ function AdmissionForm() {
                       </FormItem>
                     )}
                   />
-
-                  <FormField
-                    control={form.control}
-                    name="studentSignature"
-                    render={({ field: { value, onChange, ...fieldProps } }) => (
-                      <FormItem>
-                        <FormLabel>Student Signature (Photo)</FormLabel>
-                        <FormControl>
-                          <div className="space-y-2">
-                            <Input
-                              type="file"
-                              accept="image/*"
-                              {...fieldProps}
-                              onChange={(e) =>
-                                handleSignatureChange(e, onChange)
-                              }
-                            />
-                            {signaturePreview && (
-                              <div className="mt-2">
-                                <img
-                                  src={signaturePreview}
-                                  alt="Signature preview"
-                                  className="max-w-xs h-32 object-contain border rounded"
-                                />
-                              </div>
-                            )}
-                          </div>
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
                 </div>
+
+                {/* Student Signature Field - Full Width */}
+                <FormField
+                  control={form.control}
+                  name="studentSignature"
+                  render={({ field: { value, onChange, ...fieldProps } }) => (
+                    <FormItem>
+                      <FormLabel>Student Signature</FormLabel>
+                      <FormControl>
+                        <div className="space-y-3">
+                          {signaturePreview ? (
+                            <div className="relative group">
+                              <div className="relative w-full max-w-xs mx-auto">
+                                <div
+                                  className={`relative aspect-square w-full max-w-[200px] mx-auto rounded-lg border-2 border-border overflow-hidden bg-muted/50 cursor-pointer transition-all ${
+                                    isDraggingSignature
+                                      ? "border-primary scale-[1.02]"
+                                      : "hover:border-primary"
+                                  }`}
+                                  onDragOver={handleSignatureDragOver}
+                                  onDragLeave={handleSignatureDragLeave}
+                                  onDrop={(e) =>
+                                    handleSignatureDrop(e, onChange)
+                                  }
+                                >
+                                  <input
+                                    type="file"
+                                    accept="image/*"
+                                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+                                    {...fieldProps}
+                                    onChange={(e) => {
+                                      const file = e.target.files?.[0] || null;
+                                      handleSignatureChange(file, onChange);
+                                    }}
+                                  />
+                                  <img
+                                    src={signaturePreview}
+                                    alt="Signature preview"
+                                    className="w-full h-full object-contain bg-white"
+                                  />
+                                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors duration-200 flex items-center justify-center">
+                                    <div className="opacity-0 group-hover:opacity-100 transition-opacity">
+                                      <Upload className="h-6 w-6 text-white" />
+                                    </div>
+                                  </div>
+                                  <Button
+                                    type="button"
+                                    variant="destructive"
+                                    size="icon"
+                                    className="absolute top-2 right-2 h-7 w-7 rounded-full shadow-lg opacity-0 group-hover:opacity-100 transition-opacity z-20"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleRemoveSignature(onChange);
+                                    }}
+                                  >
+                                    <X className="h-3.5 w-3.5" />
+                                  </Button>
+                                </div>
+                              </div>
+                              <p className="text-xs text-center text-muted-foreground mt-2">
+                                Click the signature or drag a new one to replace
+                              </p>
+                            </div>
+                          ) : (
+                            <div
+                              className={`relative border-2 border-dashed rounded-lg transition-all duration-200 ${
+                                isDraggingSignature
+                                  ? "border-primary bg-primary/5 scale-[1.02]"
+                                  : "border-border hover:border-primary/50 hover:bg-muted/50"
+                              }`}
+                              onDragOver={handleSignatureDragOver}
+                              onDragLeave={handleSignatureDragLeave}
+                              onDrop={(e) => handleSignatureDrop(e, onChange)}
+                            >
+                              <input
+                                type="file"
+                                accept="image/*"
+                                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+                                {...fieldProps}
+                                onChange={(e) => {
+                                  const file = e.target.files?.[0] || null;
+                                  handleSignatureChange(file, onChange);
+                                }}
+                              />
+                              <div className="flex flex-col items-center justify-center p-8 text-center">
+                                <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-primary/10">
+                                  <ImageIcon className="h-8 w-8 text-primary" />
+                                </div>
+                                <div className="space-y-2">
+                                  <p className="text-sm font-medium text-foreground">
+                                    <span className="text-primary">
+                                      Click to upload
+                                    </span>{" "}
+                                    or drag and drop
+                                  </p>
+                                  <p className="text-xs text-muted-foreground">
+                                    Signature on white/transparent background
+                                  </p>
+                                  <p className="text-xs text-muted-foreground">
+                                    (JPEG, PNG, GIF, WebP, BMP)
+                                  </p>
+                                  <p className="text-xs text-muted-foreground">
+                                    Max file size: 10MB
+                                  </p>
+                                </div>
+                                <div className="mt-4 flex items-center gap-2 text-xs text-muted-foreground">
+                                  <Upload className="h-4 w-4" />
+                                  <span>Drop your signature here</span>
+                                </div>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
               </CardContent>
             </Card>
 
