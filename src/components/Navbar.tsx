@@ -27,6 +27,8 @@ import {
   MessageSquare,
   User,
   FilePlus2,
+  GraduationCap,
+  FileText,
 } from "lucide-react";
 import { useState, useEffect } from "react";
 
@@ -133,6 +135,18 @@ export const Sidebar: React.FC<SidebarProps> = ({ onBulkCertificateClick }) => {
       icon: User,
       show: isAuthenticated,
     },
+    {
+      path: "/workshops",
+      label: "Workshops",
+      icon: GraduationCap,
+      show: isAuthenticated,
+    },
+    {
+      path: "/workshop-certificates",
+      label: "Workshop Certificates",
+      icon: FileText,
+      show: isAuthenticated,
+    },
   ];
 
   const handleMobileMenuToggle = () => {
@@ -154,6 +168,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ onBulkCertificateClick }) => {
     "/student-results",
     "/announcements",
     "/admissions",
+    "/workshops",
+    "/workshop-certificates",
     "/dashboard",
   ];
 

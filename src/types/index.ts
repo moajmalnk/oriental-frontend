@@ -188,5 +188,66 @@ export interface AnnouncementFormData {
   expires_by: string;
 }
 
+export interface Workshop {
+  id?: number;
+  name: string;
+  duration_days: number;
+  start_date: string;
+  end_date?: string | null;
+  place: string;
+  description: string;
+  // Logo
+  logo?: string | null;
+  logo_url?: string | null;
+  // Certificate customization colors
+  background_color: string;
+  border_color: string;
+  title_color: string;
+  name_color: string;
+  text_color: string;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface WorkshopFormData {
+  name: string;
+  duration_days: number;
+  start_date: string;
+  end_date?: string | null;
+  place: string;
+  description: string;
+  logo?: File | null;
+  background_color: string;
+  border_color: string;
+  title_color: string;
+  name_color: string;
+  text_color: string;
+}
+
+// Workshop Participant types - completely separate from Student system
+export interface Participant {
+  id?: number;
+  name: string;
+  email: string;
+  phone: string;
+  gender: "male" | "female" | "other";
+  address?: string | null;
+  participant_type: "kug_student" | "external";
+  workshops: number[]; // Workshop IDs
+  workshop_details?: Workshop[]; // For display
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface ParticipantFormData {
+  name: string;
+  email: string;
+  phone: string;
+  gender: "male" | "female" | "other";
+  address?: string | null;
+  participant_type: "kug_student" | "external";
+  workshops: number[];
+}
+
 // Legacy types for backward compatibility
 export type { Student as LegacyStudent };
