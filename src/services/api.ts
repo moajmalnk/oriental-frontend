@@ -104,6 +104,8 @@ export const workshopAPI = {
     end_date?: string | null;
     place: string;
     description: string;
+    chief_trainer_title?: string;
+    chief_trainer_name?: string;
     logo?: File | null;
     background_color: string;
     border_color: string;
@@ -118,6 +120,15 @@ export const workshopAPI = {
     if (data.end_date) formData.append("end_date", data.end_date);
     formData.append("place", data.place);
     formData.append("description", data.description);
+
+    // Signatory Fields
+    if (data.chief_trainer_title !== undefined) {
+      formData.append("chief_trainer_title", data.chief_trainer_title || "");
+    }
+    if (data.chief_trainer_name !== undefined) {
+      formData.append("chief_trainer_name", data.chief_trainer_name || "");
+    }
+
     if (data.logo) formData.append("logo", data.logo);
     formData.append("background_color", data.background_color);
     formData.append("border_color", data.border_color);
@@ -141,20 +152,43 @@ export const workshopAPI = {
       place: string;
       description: string;
       logo?: File | null;
-    background_color: string;
+      background_color: string;
       border_color: string;
       title_color: string;
       name_color: string;
       text_color: string;
+      chief_trainer_title?: string;
+      chief_trainer_name?: string;
+      remove_logo?: boolean;
     }
   ) => {
     const formData = new FormData();
     formData.append("name", data.name);
     formData.append("duration_days", data.duration_days.toString());
     formData.append("start_date", data.start_date);
-    if (data.end_date) formData.append("end_date", data.end_date);
+
+    // Explicitly handle end_date clearing
+    if (data.end_date) {
+      formData.append("end_date", data.end_date);
+    } else {
+      formData.append("end_date", ""); // Send empty string to clear the date on backend
+    }
+
     formData.append("place", data.place);
     formData.append("description", data.description);
+
+    // Signatory Fields
+    if (data.chief_trainer_title !== undefined) {
+      formData.append("chief_trainer_title", data.chief_trainer_title || "");
+    }
+    if (data.chief_trainer_name !== undefined) {
+      formData.append("chief_trainer_name", data.chief_trainer_name || "");
+    }
+
+    if (data.remove_logo) {
+      formData.append("remove_logo", "true");
+    }
+
     if (data.logo) formData.append("logo", data.logo);
     formData.append("background_color", data.background_color);
     formData.append("border_color", data.border_color);

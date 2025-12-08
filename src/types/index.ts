@@ -196,6 +196,9 @@ export interface Workshop {
   end_date?: string | null;
   place: string;
   description: string;
+  // Dynamic Signatory Fields (formerly Chief Trainer)
+  chief_trainer_title?: string | null;
+  chief_trainer_name?: string | null;
   // Logo
   logo?: string | null;
   logo_url?: string | null;
@@ -216,6 +219,9 @@ export interface WorkshopFormData {
   end_date?: string | null;
   place: string;
   description: string;
+  // Dynamic Signatory Fields
+  chief_trainer_title?: string;
+  chief_trainer_name?: string;
   logo?: File | null;
   background_color: string;
   border_color: string;

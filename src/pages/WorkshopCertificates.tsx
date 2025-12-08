@@ -962,7 +962,7 @@ const WorkshopCertificates: React.FC = () => {
     if (!workshop) return;
 
     const selectedParticipants = getSelectedParticipants();
-    
+
     setIsDownloadingSelected(true);
     setBulkDownloadTotal(selectedParticipants.length);
     setBulkDownloadProgress(0);
@@ -1358,11 +1358,10 @@ const WorkshopCertificates: React.FC = () => {
             const participantWorkshops = getParticipantWorkshops(participant);
             const isSelected = selectedParticipantIds.has(participant.id!);
             return (
-              <Card 
-                key={participant.id} 
-                className={`hover:shadow-lg transition-shadow ${
-                  isSelected ? "ring-2 ring-primary border-primary" : ""
-                }`}
+              <Card
+                key={participant.id}
+                className={`hover:shadow-lg transition-shadow ${isSelected ? "ring-2 ring-primary border-primary" : ""
+                  }`}
               >
                 <CardContent className="p-4 sm:p-6">
                   <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
@@ -1565,7 +1564,7 @@ const WorkshopCertificates: React.FC = () => {
                 <p className="text-muted-foreground mb-4">
                   No participants match your search for "{searchQuery}"
                 </p>
-                <Button onClick={clearSearch} variant="outline">
+                <Button onClick={clearFilters} variant="outline">
                   Clear Search
                 </Button>
               </>
@@ -1853,65 +1852,64 @@ const WorkshopCertificates: React.FC = () => {
                   )}
                 </div>
 
-              <div
-                className={`border-2 border-dashed rounded-lg p-6 transition-colors ${
-                  bulkDragActive
-                    ? "border-primary bg-primary/5"
-                    : "border-muted-foreground/25 hover:border-muted-foreground/50"
-                } ${!bulkWorkshopId ? "opacity-70 cursor-not-allowed" : ""}`}
-                onDragEnter={(e) => {
-                  e.preventDefault();
-                  if (!bulkWorkshopId || isProcessingBulkImport) return;
-                  setBulkDragActive(true);
-                }}
-                onDragLeave={(e) => {
-                  e.preventDefault();
-                  setBulkDragActive(false);
-                }}
-                onDragOver={(e) => e.preventDefault()}
-                onDrop={(e) => {
-                  e.preventDefault();
-                  if (!bulkWorkshopId || isProcessingBulkImport) return;
-                  setBulkDragActive(false);
-                  const file = e.dataTransfer.files?.[0];
-                  if (file) handleBulkFile(file);
-                }}
-              >
-                <div className="flex flex-col items-center text-center gap-2">
-                  <Upload className="h-8 w-8 text-muted-foreground" />
-                  <p className="font-medium">Drag & drop Excel file here</p>
-                  <p className="text-sm text-muted-foreground">
-                    Supported: .xlsx, .xls (use the template for correct columns).
-                  </p>
-                  <div className="flex items-center gap-2 mt-2">
-                    <Input
-                      type="file"
-                      accept=".xlsx,.xls"
-                      onChange={(e) => {
-                        const file = e.target.files?.[0];
-                        if (file) handleBulkFile(file);
-                        e.target.value = "";
-                      }}
-                      disabled={isProcessingBulkImport || !bulkWorkshopId}
-                      className="hidden"
-                      id="bulk-import-file"
-                    />
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => document.getElementById("bulk-import-file")?.click()}
-                      disabled={isProcessingBulkImport || !bulkWorkshopId}
-                    >
-                      Browse file
-                    </Button>
+                <div
+                  className={`border-2 border-dashed rounded-lg p-6 transition-colors ${bulkDragActive
+                      ? "border-primary bg-primary/5"
+                      : "border-muted-foreground/25 hover:border-muted-foreground/50"
+                    } ${!bulkWorkshopId ? "opacity-70 cursor-not-allowed" : ""}`}
+                  onDragEnter={(e) => {
+                    e.preventDefault();
+                    if (!bulkWorkshopId || isProcessingBulkImport) return;
+                    setBulkDragActive(true);
+                  }}
+                  onDragLeave={(e) => {
+                    e.preventDefault();
+                    setBulkDragActive(false);
+                  }}
+                  onDragOver={(e) => e.preventDefault()}
+                  onDrop={(e) => {
+                    e.preventDefault();
+                    if (!bulkWorkshopId || isProcessingBulkImport) return;
+                    setBulkDragActive(false);
+                    const file = e.dataTransfer.files?.[0];
+                    if (file) handleBulkFile(file);
+                  }}
+                >
+                  <div className="flex flex-col items-center text-center gap-2">
+                    <Upload className="h-8 w-8 text-muted-foreground" />
+                    <p className="font-medium">Drag & drop Excel file here</p>
+                    <p className="text-sm text-muted-foreground">
+                      Supported: .xlsx, .xls (use the template for correct columns).
+                    </p>
+                    <div className="flex items-center gap-2 mt-2">
+                      <Input
+                        type="file"
+                        accept=".xlsx,.xls"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) handleBulkFile(file);
+                          e.target.value = "";
+                        }}
+                        disabled={isProcessingBulkImport || !bulkWorkshopId}
+                        className="hidden"
+                        id="bulk-import-file"
+                      />
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => document.getElementById("bulk-import-file")?.click()}
+                        disabled={isProcessingBulkImport || !bulkWorkshopId}
+                      >
+                        Browse file
+                      </Button>
+                    </div>
                   </div>
                 </div>
-              </div>
               </div>
 
               {bulkValidations.length > 0 && (
                 <div className="space-y-3">
-                <div className="flex items-center gap-2 flex-wrap">
+                  <div className="flex items-center gap-2 flex-wrap">
                     <Badge variant="outline" className="whitespace-nowrap">
                       {bulkValidations.filter((v) => v.errors.length === 0).length} valid
                     </Badge>
@@ -1926,23 +1924,23 @@ const WorkshopCertificates: React.FC = () => {
                     )}
                   </div>
 
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-3 border rounded-lg bg-muted/50">
-                  <div>
-                    <p className="font-medium">Missing someone?</p>
-                    <p className="text-xs text-muted-foreground">
-                      If a participant isn’t in the file or needs special handling, add them
-                      manually with the selected workshop prefilled.
-                    </p>
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-3 border rounded-lg bg-muted/50">
+                    <div>
+                      <p className="font-medium">Missing someone?</p>
+                      <p className="text-xs text-muted-foreground">
+                        If a participant isn’t in the file or needs special handling, add them
+                        manually with the selected workshop prefilled.
+                      </p>
+                    </div>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={handleManualAddFromBulk}
+                      className="whitespace-nowrap"
+                    >
+                      Add manually
+                    </Button>
                   </div>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={handleManualAddFromBulk}
-                    className="whitespace-nowrap"
-                  >
-                    Add manually
-                  </Button>
-                </div>
 
                   <div className="border rounded-lg max-h-64 overflow-auto">
                     <table className="w-full text-sm">

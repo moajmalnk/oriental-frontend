@@ -15,6 +15,7 @@ import {
   Award,
   Upload,
   Image,
+  PenTool,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -81,6 +82,8 @@ const Workshops: React.FC = () => {
     end_date: null,
     place: "",
     description: "",
+    chief_trainer_title: "",
+    chief_trainer_name: "",
     logo: null,
     background_color: DEFAULT_COLORS.background_color,
     ...DEFAULT_COLORS,
@@ -88,6 +91,7 @@ const Workshops: React.FC = () => {
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [activeTab, setActiveTab] = useState("details");
+  const [removeLogoFlag, setRemoveLogoFlag] = useState(false);
   const logoInputRef = useRef<HTMLInputElement>(null);
 
   // Pagination states
@@ -187,11 +191,14 @@ const Workshops: React.FC = () => {
       end_date: null,
       place: "",
       description: "",
+      chief_trainer_title: "",
+      chief_trainer_name: "",
       logo: null,
       background_color: DEFAULT_COLORS.background_color,
       ...DEFAULT_COLORS,
     });
     setLogoPreview(null);
+    setRemoveLogoFlag(false);
     setErrors({});
     setEditingWorkshop(null);
     setActiveTab("details");
@@ -215,6 +222,7 @@ const Workshops: React.FC = () => {
   const removeLogo = () => {
     setFormData({ ...formData, logo: null });
     setLogoPreview(null);
+    setRemoveLogoFlag(true);
     if (logoInputRef.current) {
       logoInputRef.current.value = "";
     }
@@ -231,6 +239,8 @@ const Workshops: React.FC = () => {
         end_date: workshop.end_date || null,
         place: workshop.place,
         description: workshop.description,
+        chief_trainer_title: workshop.chief_trainer_title || "",
+        chief_trainer_name: workshop.chief_trainer_name || "",
         logo: null, // Don't pre-fill file, but show existing logo
         background_color:
           workshop.background_color || DEFAULT_COLORS.background_color,
@@ -259,7 +269,7 @@ const Workshops: React.FC = () => {
       const existingWorkshop = workshops.find(
         (w) => w.name.toLowerCase() === trimmedName.toLowerCase()
       );
-      
+
       // If editing, allow the same name if it's the same workshop
       if (existingWorkshop) {
         if (!editingWorkshop || existingWorkshop.id !== editingWorkshop.id) {
@@ -303,6 +313,7 @@ const Workshops: React.FC = () => {
     const payload = {
       ...formData,
       end_date: formData.end_date || null,
+      remove_logo: removeLogoFlag,
     };
 
     // Show update confirmation dialog if editing
@@ -324,7 +335,7 @@ const Workshops: React.FC = () => {
       fetchWorkshops();
     } catch (error: any) {
       console.error("Error creating workshop:", error);
-      
+
       // Handle validation errors from backend
       if (error.response?.data?.errors?.name) {
         setErrors({ name: error.response.data.errors.name[0] });
@@ -361,7 +372,7 @@ const Workshops: React.FC = () => {
       fetchWorkshops();
     } catch (error: any) {
       console.error("Error updating workshop:", error);
-      
+
       // Handle validation errors from backend
       if (error.response?.data?.errors?.name) {
         setErrors({ name: error.response.data.errors.name[0] });
@@ -503,6 +514,9 @@ const Workshops: React.FC = () => {
     end_date: formData.end_date,
     place: formData.place || "Location",
     description: formData.description || "",
+    // Fallback to "Course Director" if empty, so preview is meaningful
+    chief_trainer_title: formData.chief_trainer_title || (formData.chief_trainer_title === "" ? "Course Director" : null),
+    chief_trainer_name: formData.chief_trainer_name || (formData.chief_trainer_name === "" ? "Dr. Example Name" : null),
     logo_url: logoPreview || (editingWorkshop?.logo_url) || null,
     background_color:
       formData.background_color || DEFAULT_COLORS.background_color,
@@ -1064,6 +1078,50 @@ const Workshops: React.FC = () => {
                       />
                     </div>
 
+                    {/* Signatory / Authority Configuration */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:col-span-2 border p-4 rounded-lg bg-gray-50/50">
+                      <div className="md:col-span-2 flex items-center gap-2 mb-1">
+                        <PenTool className="h-4 w-4 text-muted-foreground" />
+                        <h4 className="font-medium text-sm">Certificate Signatory Authority</h4>
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="chief_trainer_title">Signatory Title (Optional)</Label>
+                        <Input
+                          id="chief_trainer_title"
+                          value={formData.chief_trainer_title}
+                          onChange={(e) =>
+                            setFormData({
+                              ...formData,
+                              chief_trainer_title: e.target.value,
+                            })
+                          }
+                          placeholder="e.g., Course Coordinator, Chief Trainer, Director"
+                        />
+                        <p className="text-xs text-muted-foreground">
+                          The title displayed under the signature (e.g., Course Designer)
+                        </p>
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="chief_trainer_name">Signatory Name (Optional)</Label>
+                        <Input
+                          id="chief_trainer_name"
+                          value={formData.chief_trainer_name}
+                          onChange={(e) =>
+                            setFormData({
+                              ...formData,
+                              chief_trainer_name: e.target.value,
+                            })
+                          }
+                          placeholder="e.g., Dr. Name Surname"
+                        />
+                        <p className="text-xs text-muted-foreground">
+                          The name displayed above the title
+                        </p>
+                      </div>
+                    </div>
+
                     {/* Logo Upload */}
                     <div className="space-y-2 md:col-span-2">
                       <Label>Certificate Logo (Optional)</Label>
@@ -1083,7 +1141,7 @@ const Workshops: React.FC = () => {
                             <Image className="h-8 w-8 text-muted-foreground" />
                           )}
                         </div>
-                        
+
                         <div className="flex flex-col gap-2">
                           <input
                             ref={logoInputRef}
@@ -1142,7 +1200,7 @@ const Workshops: React.FC = () => {
                           Reset Colors
                         </Button>
                       </div>
-                      
+
                       <div className="space-y-4">
                         <ColorPicker
                           label="Background Color"
@@ -1384,14 +1442,14 @@ const Workshops: React.FC = () => {
             {previewWorkshop && (
               <div className="flex flex-col items-center">
                 {/* Scaled certificate preview container - fits in viewport */}
-                <div 
+                <div
                   className="border rounded-lg bg-gray-50 p-3 overflow-hidden"
-                  style={{ 
+                  style={{
                     width: 'min(calc(95vw - 48px), 920px)',
                     height: 'min(calc(95vh - 140px), 700px)',
                   }}
                 >
-                  <div 
+                  <div
                     className="flex justify-center"
                     style={{
                       transform: 'scale(0.55)',
