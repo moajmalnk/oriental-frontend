@@ -88,4 +88,163 @@ export const announcementAPI = {
     api.delete(`/api/users/announcements/${id}/`),
 };
 
+// Workshop API functions
+export const workshopAPI = {
+  // Get all workshops
+  getWorkshops: () => api.get("/api/workshop/list/"),
+
+  // Get single workshop
+  getWorkshop: (id: number) => api.get(`/api/workshop/${id}/`),
+
+  // Create workshop (with optional logo file)
+  createWorkshop: (data: {
+    name: string;
+    duration_days: number;
+    start_date: string;
+    end_date?: string | null;
+    place: string;
+    description: string;
+    chief_trainer_title?: string;
+    chief_trainer_name?: string;
+    logo?: File | null;
+    background_color: string;
+    border_color: string;
+    title_color: string;
+    name_color: string;
+    text_color: string;
+  }) => {
+    const formData = new FormData();
+    formData.append("name", data.name);
+    formData.append("duration_days", data.duration_days.toString());
+    formData.append("start_date", data.start_date);
+    if (data.end_date) formData.append("end_date", data.end_date);
+    formData.append("place", data.place);
+    formData.append("description", data.description);
+
+    // Signatory Fields
+    if (data.chief_trainer_title !== undefined) {
+      formData.append("chief_trainer_title", data.chief_trainer_title || "");
+    }
+    if (data.chief_trainer_name !== undefined) {
+      formData.append("chief_trainer_name", data.chief_trainer_name || "");
+    }
+
+    if (data.logo) formData.append("logo", data.logo);
+    formData.append("background_color", data.background_color);
+    formData.append("border_color", data.border_color);
+    formData.append("title_color", data.title_color);
+    formData.append("name_color", data.name_color);
+    formData.append("text_color", data.text_color);
+
+    return api.post("/api/workshop/create/", formData, {
+      headers: { "Content-Type": "multipart/form-data" },
+    });
+  },
+
+  // Update workshop (with optional logo file)
+  updateWorkshop: (
+    id: number,
+    data: {
+      name: string;
+      duration_days: number;
+      start_date: string;
+      end_date?: string | null;
+      place: string;
+      description: string;
+      logo?: File | null;
+      background_color: string;
+      border_color: string;
+      title_color: string;
+      name_color: string;
+      text_color: string;
+      chief_trainer_title?: string;
+      chief_trainer_name?: string;
+      remove_logo?: boolean;
+    }
+  ) => {
+    const formData = new FormData();
+    formData.append("name", data.name);
+    formData.append("duration_days", data.duration_days.toString());
+    formData.append("start_date", data.start_date);
+
+    // Explicitly handle end_date clearing
+    if (data.end_date) {
+      formData.append("end_date", data.end_date);
+    } else {
+      formData.append("end_date", ""); // Send empty string to clear the date on backend
+    }
+
+    formData.append("place", data.place);
+    formData.append("description", data.description);
+
+    // Signatory Fields
+    if (data.chief_trainer_title !== undefined) {
+      formData.append("chief_trainer_title", data.chief_trainer_title || "");
+    }
+    if (data.chief_trainer_name !== undefined) {
+      formData.append("chief_trainer_name", data.chief_trainer_name || "");
+    }
+
+    if (data.remove_logo) {
+      formData.append("remove_logo", "true");
+    }
+
+    if (data.logo) formData.append("logo", data.logo);
+    formData.append("background_color", data.background_color);
+    formData.append("border_color", data.border_color);
+    formData.append("title_color", data.title_color);
+    formData.append("name_color", data.name_color);
+    formData.append("text_color", data.text_color);
+
+    return api.put(`/api/workshop/update/${id}/`, formData, {
+      headers: { "Content-Type": "multipart/form-data" },
+    });
+  },
+
+  // Delete workshop
+  deleteWorkshop: (id: number) => api.delete(`/api/workshop/delete/${id}/`),
+
+  // Get participants for a specific workshop
+  getWorkshopParticipants: (workshopId: number) =>
+    api.get(`/api/workshop/${workshopId}/participants/`),
+};
+
+// Participant API functions - completely separate from Student system
+export const participantAPI = {
+  // Get all participants
+  getParticipants: () => api.get("/api/workshop/participants/"),
+
+  // Get single participant
+  getParticipant: (id: number) => api.get(`/api/workshop/participants/${id}/`),
+
+  // Create participant
+  createParticipant: (data: {
+    name: string;
+    email: string;
+    phone: string;
+    gender: "male" | "female" | "other";
+    address?: string | null;
+    participant_type: "kug_student" | "external";
+    workshops: number[];
+  }) => api.post("/api/workshop/participants/create/", data),
+
+  // Update participant
+  updateParticipant: (
+    id: number,
+    data: {
+      name: string;
+      email: string;
+      phone: string;
+      gender: "male" | "female" | "other";
+      address?: string | null;
+      participant_type: "kug_student" | "external";
+      workshops: number[];
+    }
+  ) => api.put(`/api/workshop/participants/update/${id}/`, data),
+
+  // Delete participant
+  deleteParticipant: (id: number) =>
+    api.delete(`/api/workshop/participants/delete/${id}/`),
+};
+
 export default api;

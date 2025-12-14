@@ -27,6 +27,8 @@ import AdmissionThankYou from "./pages/AdmissionThankYou";
 import Admissions from "./pages/Admissions";
 import AdmissionView from "./pages/AdmissionView";
 import AdmissionApprove from "./pages/AdmissionApprove";
+import Workshops from "./pages/Workshops";
+import WorkshopCertificates from "./pages/WorkshopCertificates";
 
 const queryClient = new QueryClient();
 
@@ -148,6 +150,22 @@ const App = () => (
               element={
                 <ProtectedRoute>
                   <AdmissionApprove />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/workshops"
+              element={
+                <ProtectedRoute>
+                  <Workshops />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/workshop-certificates"
+              element={
+                <ProtectedRoute>
+                  <WorkshopCertificates />
                 </ProtectedRoute>
               }
             />
