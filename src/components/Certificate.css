@@ -1,0 +1,441 @@
+.certificate-container {
+  width: 100%;
+  max-width: 800px;
+  margin: 0 auto;
+  background: #f8f9fa;
+  padding: 20px;
+}
+
+/* Remove backgrounds during PDF capture */
+.certificate-container.pdf-capture-mode {
+  background: transparent !important;
+  padding: 0 !important;
+}
+
+.certificate-container.pdf-capture-mode .certificate-paper {
+  background: transparent !important;
+  box-shadow: none !important;
+  border-radius: 0 !important;
+}
+
+.certificate-container.pdf-capture-mode .template-image {
+  /* Ensure template image renders properly in PDF */
+  image-rendering: -webkit-optimize-contrast;
+  image-rendering: crisp-edges;
+}
+
+.certificate-paper {
+  position: relative;
+  background: #fefefe;
+  border-radius: 8px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  aspect-ratio: 210/297; /* A4 ratio */
+}
+
+.template-background {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+}
+
+.template-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  /* Ensure proper rendering for PDF generation */
+  image-rendering: -webkit-optimize-contrast;
+  image-rendering: crisp-edges;
+}
+
+.certificate-content {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  height: 100%;
+  padding: 0;
+}
+
+/* Remove old header styles since we're using template background */
+
+/* Reference Numbers - positioned on left side based on template */
+.reference-numbers {
+  position: absolute;
+  left: 8%;
+  top: 45%;
+  z-index: 3;
+}
+
+.ref-line {
+  font-size: 11px;
+  color: #8b4513;
+  margin-bottom: 6px;
+  font-family: "Times New Roman", Times, serif;
+  font-weight: bold;
+}
+
+.ref-line .reg-value {
+  color: #c62828; /* deep red like screenshot */
+}
+
+.ref-line .cert-value {
+  color: #111;
+}
+
+/* Student Photo - positioned on right side based on template */
+.student-photo {
+  position: absolute;
+  right: 8%;
+  top: 45%;
+  z-index: 3;
+}
+
+.photo-container {
+  position: relative;
+  width: 80px;
+  height: 80px;
+}
+
+.student-photo-img {
+  width: 80px;
+  height: 90px;
+  object-fit: cover;
+  object-position: center;
+}
+
+.photo-placeholder {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 80px;
+  height: 80px;
+  background: #f0f0f0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.photo-icon {
+  font-size: 28px;
+  color: #8b4513;
+}
+
+/* Course Conferred - positioned in center based on template */
+.course-conferred {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translateX(-50%);
+  text-align: center;
+  z-index: 3;
+}
+
+.conferral-text {
+  font-size: 14px;
+  color: #000;
+  margin-bottom: 8px;
+  font-family: "Times New Roman", Times, serif;
+}
+
+.course-name {
+  font-size: 20px;
+  font-weight: bold;
+  color: #000;
+  margin-bottom: 8px;
+  font-family: "Times New Roman", Times, serif;
+}
+
+/* Student Name - positioned in center based on template */
+.student-name {
+  position: absolute;
+  left: 50%;
+  top: 60%;
+  transform: translateX(-50%);
+  font-size: 30px;
+  font-weight: bold;
+  color: #000;
+  text-align: center;
+  font-family: "Times New Roman", Times, serif;
+  letter-spacing: 1px;
+  z-index: 3;
+}
+
+/* Completion Statement - positioned in center based on template */
+.completion-statement {
+  position: absolute;
+  /* margin-left: 10px; */
+  left: 40%;
+  top: 66%;
+  transform: translateX(-33%);
+  font-size: 14px;
+  color: #000;
+  text-align: center;
+  line-height: 1.5;
+  font-family: "Times New Roman", Times, serif;
+  max-width: 90%;
+  z-index: 3;
+}
+
+/* Bottom row container for date, chairman, and controller */
+.bottom-row {
+  position: absolute;
+  bottom: 14%;
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: space-evenly;
+  align-items: flex-end;
+  padding: 0 5%;
+  padding-top: 10px !important;
+  z-index: 3;
+  gap: 0;
+  /* max-height: 10px !important; */
+}
+
+/* Date - positioned on left side */
+.date-section {
+  flex: 0 0 auto;
+  min-width: 120px;
+  text-align: center;
+}
+
+.date-text {
+  font-size: 10px;
+  color: #000;
+  font-family: "Times New Roman", Times, serif;
+  font-weight: bold;
+  line-height: 1.1;
+}
+
+/* Chairman - positioned in center */
+.chairman-section {
+  flex: 0 0 auto;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-width: 120px;
+  text-align: center;
+  /* margin-top: 12px; */
+}
+
+.chairman-line {
+  text-align: center;
+}
+
+.chairman-sign {
+  width: 80px;
+  height: auto;
+  margin: 15px auto 8px auto;
+  display: block;
+  filter: drop-shadow(0 0 0 rgba(0, 0, 0, 0));
+}
+
+.chairman-placeholder {
+  width: 80px;
+  height: 1px;
+  background: #8b4513;
+  margin-bottom: 3px;
+}
+
+.chairman-title {
+  font-size: 10px;
+  color: #000;
+  font-family: "Times New Roman", Times, serif;
+  font-weight: bold;
+  text-align: center;
+  margin-top: 0;
+}
+
+/* Controller of Examination - positioned on right side */
+.controller-section {
+  flex: 0 0 auto;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-width: 120px;
+  text-align: center;
+}
+
+/* KUG Seal - positioned below signatures */
+.kug-seal {
+  position: absolute;
+  left: 52%;
+  bottom: 3%;
+  transform: translateX(-50%);
+  z-index: 3;
+}
+
+.seal-image {
+  width: 80px;
+  height: 80px;
+  object-fit: contain;
+  object-position: center;
+}
+
+.controller-line {
+  text-align: center;
+}
+
+.controller-sign {
+  width: 90px;
+  height: auto;
+  margin: 0 auto 0px auto;
+  display: block;
+  filter: drop-shadow(0 0 0 rgba(0, 0, 0, 0));
+}
+
+.controller-placeholder {
+  width: 80px;
+  height: 1px;
+  background: #8b4513;
+  margin-bottom: 3px;
+}
+
+.controller-title {
+  font-size: 10px;
+  color: #000;
+  font-family: "Times New Roman", Times, serif;
+  font-weight: bold;
+  text-align: center;
+  line-height: 1.2;
+  margin-top: 0;
+}
+
+/* Responsive adjustments for PC screens */
+@media (min-width: 768px) {
+  .bottom-row {
+    bottom: 13%;
+    padding: 0 4%;
+    gap: 0;
+    max-height: 10px !important;
+  }
+
+  .date-section,
+  .chairman-section,
+  .controller-section {
+    min-width: 140px;
+  }
+
+  .date-text {
+    font-size: 11px;
+  }
+
+  .chairman-title,
+  .controller-title {
+    font-size: 11px;
+  }
+
+  .chairman-sign {
+    width: 70px;
+    margin: 15px auto 8px auto;
+  }
+
+  .controller-sign {
+    width: 85px;
+    margin: 0 auto 0px auto;
+  }
+
+  .seal-image {
+    width: 90px;
+    height: 90px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .bottom-row {
+    bottom: 13%;
+    padding: 0 3%;
+    gap: 0;
+  }
+
+  .date-section,
+  .chairman-section,
+  .controller-section {
+    min-width: 160px;
+  }
+
+  .date-text {
+    font-size: 12px;
+  }
+
+  .chairman-title,
+  .controller-title {
+    font-size: 12px;
+  }
+
+  .chairman-sign {
+    width: 75px;
+    margin: 15px auto 8px auto;
+  }
+
+  .controller-sign {
+    width: 90px;
+    margin: 0 auto 0px auto;
+  }
+
+  .seal-image {
+    width: 100px;
+    height: 100px;
+  }
+}
+
+@media (min-width: 1440px) {
+  .bottom-row {
+    bottom: 13%;
+    padding: 0 2%;
+    gap: 0;
+  }
+
+  .date-section,
+  .chairman-section,
+  .controller-section {
+    min-width: 180px;
+  }
+
+  .date-text {
+    font-size: 13px;
+  }
+
+  .chairman-title,
+  .controller-title {
+    font-size: 13px;
+  }
+
+  .chairman-sign {
+    width: 80px;
+    margin: 15px auto 8px auto;
+  }
+
+  .controller-sign {
+    width: 95px;
+    margin: 0 auto 0px auto;
+  }
+
+  .seal-image {
+    width: 110px;
+    height: 110px;
+  }
+}
+
+/* Print styles */
+@media print {
+  .certificate-container {
+    background: white;
+    padding: 0;
+    margin: 0;
+    max-width: none;
+  }
+
+  .certificate-paper {
+    box-shadow: none;
+    border-radius: 0;
+  }
+
+  .certificate-border {
+    padding: 30px;
+  }
+}

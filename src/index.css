@@ -1,0 +1,825 @@
+@import url("https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Prague:wght@400;500;600;700&display=swap");
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Definition of the design system for KUG Oriental Academy. All colors, gradients, fonts, etc should be defined here. 
+All colors MUST be HSL.
+*/
+
+@layer base {
+  :root {
+    /* Light Mode Colors */
+    --background: 60 9% 98%; /* Light cream background */
+    --foreground: 15 58% 32%; /* Dark reddish-brown text */
+
+    --card: 0 0% 100%; /* Pure white cards */
+    --card-foreground: 15 58% 32%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 15 58% 32%;
+
+    --primary: 32 58% 63%; /* Light tan/camel */
+    --primary-foreground: 15 58% 32%;
+
+    --secondary: 95 16% 48%; /* Sage green */
+    --secondary-foreground: 0 0% 100%;
+
+    --muted: 60 9% 98%;
+    --muted-foreground: 15 58% 32%;
+
+    --accent: 95 55% 23%; /* Dark forest green */
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 32 58% 63%; /* Light tan border */
+    --input: 32 58% 63%;
+    --ring: 95 55% 23%;
+
+    --success: 142 76% 36%;
+    --success-foreground: 0 0% 100%;
+
+    --warning: 38 92% 50%;
+    --warning-foreground: 0 0% 100%;
+
+    --academic: 95 55% 23%; /* Dark forest green for academic elements */
+    --academic-foreground: 0 0% 100%;
+
+    --academic-light: 95 16% 48%; /* Sage green */
+    --academic-dark: 95 55% 23%; /* Dark forest green */
+
+    --gradient-primary: linear-gradient(
+      135deg,
+      hsl(var(--academic)),
+      hsl(var(--academic-light))
+    );
+    --gradient-card: linear-gradient(180deg, hsl(var(--card)), hsl(60 9% 98%));
+
+    --shadow-elegant: 0 10px 25px -5px hsl(var(--academic) / 0.1),
+      0 8px 10px -6px hsl(var(--academic) / 0.1);
+    --shadow-card: 0 4px 6px -1px hsl(15 58% 32% / 0.1),
+      0 2px 4px -2px hsl(15 58% 32% / 0.1);
+
+    --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+
+    --radius: 0.5rem;
+
+    --sidebar-background: 60 9% 98%;
+    --sidebar-foreground: 15 58% 32%;
+    --sidebar-primary: 95 55% 23%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 32 58% 63%;
+    --sidebar-accent-foreground: 15 58% 32%;
+    --sidebar-border: 32 58% 63%;
+    --sidebar-ring: 95 55% 23%;
+  }
+
+  .dark {
+    /* Modern Dark Mode Colors - Blue-Gray Palette */
+    --background: 222 84% 4.9%; /* Deep blue-gray background */
+    --foreground: 210 40% 98%; /* Near white text */
+
+    --card: 222 84% 6.5%; /* Slightly lighter blue-gray cards */
+    --card-foreground: 210 40% 98%;
+
+    --popover: 222 84% 6.5%;
+    --popover-foreground: 210 40% 98%;
+
+    --primary: 210 40% 98%; /* Bright white primary */
+    --primary-foreground: 222 84% 4.9%;
+
+    --secondary: 217 32% 17.5%; /* Medium blue-gray */
+    --secondary-foreground: 210 40% 98%;
+
+    --muted: 217 32% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%; /* Muted blue-gray text */
+
+    --accent: 142 76% 36%; /* Vibrant green accent */
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 217 32% 17.5%; /* Blue-gray borders */
+    --input: 217 32% 17.5%;
+    --ring: 142 76% 36%; /* Green ring for focus */
+
+    --success: 142 76% 36%;
+    --success-foreground: 0 0% 100%;
+
+    --warning: 38 92% 50%;
+    --warning-foreground: 0 0% 100%;
+
+    --academic: 142 76% 36%; /* Green for academic elements */
+    --academic-foreground: 0 0% 100%;
+
+    --academic-light: 142 60% 50%; /* Lighter green */
+    --academic-dark: 142 80% 25%; /* Darker green */
+
+    --gradient-primary: linear-gradient(
+      135deg,
+      hsl(var(--academic)),
+      hsl(var(--academic-light))
+    );
+    --gradient-card: linear-gradient(
+      180deg,
+      hsl(var(--card)),
+      hsl(222 84% 4.9%)
+    );
+
+    --shadow-elegant: 0 10px 25px -5px hsl(var(--academic) / 0.2),
+      0 8px 10px -6px hsl(var(--academic) / 0.2);
+    --shadow-card: 0 4px 6px -1px hsl(0 0% 0% / 0.2),
+      0 2px 4px -2px hsl(0 0% 0% / 0.2);
+
+    --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+
+    --radius: 0.5rem;
+
+    --sidebar-background: 222 84% 6.5%;
+    --sidebar-foreground: 210 40% 98%;
+    --sidebar-primary: 142 76% 36%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 217 32% 17.5%;
+    --sidebar-accent-foreground: 210 40% 98%;
+    --sidebar-border: 217 32% 17.5%;
+    --sidebar-ring: 142 76% 36%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  html {
+    /* Apply custom scrollbar globally */
+    @apply scrollbar-thin;
+  }
+
+  body {
+    @apply bg-background text-foreground font-body scrollbar-thin;
+    /* Performance optimizations */
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    font-feature-settings: "kern" 1;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    @apply font-display;
+  }
+
+  /* Optimize images and media */
+  img,
+  video,
+  canvas,
+  audio,
+  iframe,
+  embed,
+  object {
+    display: block;
+    max-width: 100%;
+  }
+
+  /* Smooth scrolling */
+  html {
+    scroll-behavior: smooth;
+  }
+
+  /* Focus styles for accessibility */
+  *:focus-visible {
+    outline: 2px solid hsl(var(--academic));
+    outline-offset: 2px;
+  }
+}
+
+/* Custom font classes */
+.font-display {
+  font-family: "Prague", serif;
+  font-display: swap;
+}
+
+.font-body {
+  font-family: "Poppins", sans-serif;
+  font-display: swap;
+}
+
+/* Performance optimized animations */
+@keyframes fade-in {
+  0% {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slide-up {
+  0% {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes scale-in {
+  0% {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes skeleton-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+/* Optimized animation classes */
+.animate-fade-in {
+  animation: fade-in 0.4s ease-out;
+}
+
+.animate-slide-up {
+  animation: slide-up 0.5s ease-out;
+}
+
+.animate-scale-in {
+  animation: scale-in 0.3s ease-out;
+}
+
+.animate-skeleton-pulse {
+  animation: skeleton-pulse 1.5s ease-in-out infinite;
+}
+
+/* Responsive utilities */
+@media (max-width: 640px) {
+  .container {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .container {
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+  }
+}
+
+/* Professional Print Styles */
+@media print {
+  /* Hide non-essential elements during print */
+  .print\:hidden,
+  [data-print-hide] {
+    display: none !important;
+  }
+
+  /* Reset background colors for print */
+  * {
+    background: transparent !important;
+    color: black !important;
+    box-shadow: none !important;
+    text-shadow: none !important;
+  }
+
+  /* Optimize page layout */
+  @page {
+    margin: 1cm;
+    size: A4;
+  }
+
+  /* Ensure proper text sizing */
+  body {
+    font-size: 12pt;
+    line-height: 1.4;
+    background: white !important;
+  }
+
+  /* Optimize headings for print */
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    page-break-after: avoid;
+    break-after: avoid;
+    font-size: 14pt;
+    margin-top: 1em;
+    margin-bottom: 0.5em;
+  }
+
+  /* Prevent page breaks in tables */
+  table {
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+
+  /* Optimize result table for print */
+  #result-table {
+    page-break-inside: avoid;
+    break-inside: avoid;
+    border: 1px solid #000;
+    margin: 1em 0;
+  }
+
+  /* Ensure all tables in result are included */
+  #result-table table {
+    page-break-inside: avoid;
+    break-inside: avoid;
+    border-collapse: collapse;
+    width: 100%;
+  }
+
+  #result-table th,
+  #result-table td {
+    border: 1px solid #000;
+    padding: 8px;
+    text-align: center;
+  }
+
+  #result-table th {
+    background-color: #f5f5f5;
+    font-weight: bold;
+  }
+
+  /* Ensure proper spacing */
+  .container {
+    max-width: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  /* Hide decorative elements */
+  .bg-gradient-primary,
+  .bg-gradient-card {
+    background: white !important;
+    border: 1px solid #000 !important;
+  }
+
+  /* Optimize buttons for print */
+  button {
+    display: none !important;
+  }
+
+  /* Ensure text is readable */
+  .text-academic,
+  .text-success,
+  .text-foreground {
+    color: black !important;
+  }
+
+  /* Ensure maximum scores table is visible in print */
+  .bg-gradient-card {
+    background: white !important;
+    border: 1px solid #000 !important;
+  }
+
+  /* Print-specific table styling */
+  @media print {
+    .space-y-4 > * + * {
+      margin-top: 1rem !important;
+    }
+
+    .space-y-6 > * + * {
+      margin-top: 1.5rem !important;
+    }
+
+    .space-y-8 > * + * {
+      margin-top: 2rem !important;
+    }
+  }
+
+  /* Add print header */
+  body::before {
+    content: "KUG Oriental Academy";
+    display: block;
+    text-align: center;
+    font-size: 18pt;
+    font-weight: bold;
+    margin-bottom: 1em;
+    border-bottom: 2px solid #000;
+    padding-bottom: 0.5em;
+  }
+
+  /* Add print footer */
+  body::after {
+    content: "Generated on " attr(data-print-date) " | kugoriental.com";
+    display: block;
+    text-align: center;
+    font-size: 10pt;
+    margin-top: 1em;
+    border-top: 1px solid #000;
+    padding-top: 0.5em;
+  }
+}
+
+/* Professional responsive enhancements */
+@media (max-width: 480px) {
+  /* Extra small mobile optimizations */
+  .text-xs {
+    font-size: 0.75rem;
+  }
+
+  .px-4 {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+
+  .gap-3 {
+    gap: 0.75rem;
+  }
+
+  /* Mobile-specific typography adjustments */
+  .text-3xl {
+    font-size: 1.75rem;
+  }
+
+  .text-2xl {
+    font-size: 1.5rem;
+  }
+
+  .text-xl {
+    font-size: 1.25rem;
+  }
+
+  /* Mobile spacing optimizations */
+  .py-8 {
+    padding-top: 1.5rem;
+    padding-bottom: 1.5rem;
+  }
+
+  .py-12 {
+    padding-top: 2rem;
+    padding-bottom: 2rem;
+  }
+
+  .py-16 {
+    padding-top: 2.5rem;
+    padding-bottom: 2.5rem;
+  }
+}
+
+/* Enhanced mobile responsiveness */
+@media (max-width: 640px) {
+  .container {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+
+  /* Mobile header adjustments */
+  .text-7xl {
+    font-size: 2.5rem;
+  }
+
+  .text-6xl {
+    font-size: 2.25rem;
+  }
+
+  .text-5xl {
+    font-size: 2rem;
+  }
+
+  /* Mobile card spacing */
+  .p-6 {
+    padding: 1rem;
+  }
+
+  .p-8 {
+    padding: 1.25rem;
+  }
+
+  .p-10 {
+    padding: 1.5rem;
+  }
+}
+
+/* Tablet optimizations */
+@media (min-width: 641px) and (max-width: 1024px) {
+  .container {
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+  }
+
+  /* Tablet typography */
+  .text-7xl {
+    font-size: 3.5rem;
+  }
+
+  .text-6xl {
+    font-size: 3rem;
+  }
+
+  .text-5xl {
+    font-size: 2.5rem;
+  }
+}
+
+@media (min-width: 1920px) {
+  /* Ultra-wide screen optimizations */
+  .container {
+    max-width: 1400px;
+  }
+
+  .text-6xl {
+    font-size: 4rem;
+  }
+
+  .text-5xl {
+    font-size: 3.5rem;
+  }
+}
+
+/* Professional hover effects */
+.hover\:shadow-elegant:hover {
+  box-shadow: var(--shadow-elegant);
+  transform: translateY(-2px);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.hover\:scale-105:hover {
+  transform: scale(1.05);
+  transition: transform 0.2s ease-in-out;
+}
+
+/* Enhanced professional animations */
+@keyframes professional-fade-in {
+  0% {
+    opacity: 0;
+    transform: translateY(20px) scale(0.95);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes professional-slide-up {
+  0% {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes professional-scale-in {
+  0% {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes professional-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
+
+/* Professional animation classes */
+.animate-professional-fade-in {
+  animation: professional-fade-in 0.6s ease-out;
+}
+
+.animate-professional-slide-up {
+  animation: professional-slide-up 0.7s ease-out;
+}
+
+.animate-professional-scale-in {
+  animation: professional-scale-in 0.5s ease-out;
+}
+
+.animate-professional-pulse {
+  animation: professional-pulse 2s ease-in-out infinite;
+}
+
+/* Professional gradient animations */
+@keyframes gradient-shift {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+.animate-gradient-shift {
+  background-size: 200% 200%;
+  animation: gradient-shift 3s ease infinite;
+}
+
+/* Professional focus states */
+.focus\:ring-academic:focus {
+  box-shadow: 0 0 0 3px hsl(var(--academic) / 0.2);
+  outline: none;
+}
+
+/* Professional loading states */
+.loading-shimmer {
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.4),
+    transparent
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+/* Mobile/Tablet Sidebar Enhancements */
+@media (max-width: 1023px) {
+  /* Ensure sidebar doesn't interfere with content */
+  .sidebar-open {
+    overflow: hidden;
+  }
+
+  /* Smooth sidebar animations */
+  .sidebar-transition {
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  /* Better touch targets for mobile */
+  .mobile-nav-button {
+    min-height: 44px;
+    min-width: 44px;
+  }
+
+  /* Improved sidebar spacing */
+  .sidebar-content {
+    padding: 1.5rem;
+  }
+
+  /* Better contrast for mobile sidebar */
+  .sidebar-overlay {
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+  }
+}
+
+/* Tablet specific optimizations */
+@media (min-width: 768px) and (max-width: 1023px) {
+  .sidebar-width {
+    width: 256px;
+    max-width: 70vw;
+  }
+}
+
+/* Mobile specific optimizations */
+@media (max-width: 767px) {
+  .sidebar-width {
+    width: 240px;
+    max-width: 75vw;
+  }
+
+  /* Compact touch targets on mobile */
+  .mobile-nav-item {
+    min-height: 40px;
+    padding: 0.5rem 0.75rem;
+  }
+}
+
+/* Custom Scrollbar Styles */
+.scrollbar-thin {
+  scrollbar-width: thin;
+  scrollbar-color: hsl(var(--border) / 0.3) transparent;
+}
+
+.scrollbar-thin::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-track {
+  background: transparent;
+  border-radius: 3px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb {
+  background: hsl(var(--border) / 0.3);
+  border-radius: 3px;
+  transition: background-color 0.2s ease;
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb:hover {
+  background: hsl(var(--border) / 0.5);
+}
+
+.scrollbar-thin::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+/* Hide scrollbar but keep functionality */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+/* Custom scrollbar variants */
+.scrollbar-accent {
+  scrollbar-color: hsl(var(--accent) / 0.3) transparent;
+}
+
+.scrollbar-accent::-webkit-scrollbar-thumb {
+  background: hsl(var(--accent) / 0.3);
+}
+
+.scrollbar-accent::-webkit-scrollbar-thumb:hover {
+  background: hsl(var(--accent) / 0.5);
+}
+
+.scrollbar-primary {
+  scrollbar-color: hsl(var(--primary) / 0.3) transparent;
+}
+
+.scrollbar-primary::-webkit-scrollbar-thumb {
+  background: hsl(var(--primary) / 0.3);
+}
+
+.scrollbar-primary::-webkit-scrollbar-thumb:hover {
+  background: hsl(var(--primary) / 0.5);
+}
+
+/* Dark mode scrollbar adjustments */
+.dark .scrollbar-thin {
+  scrollbar-color: hsl(var(--border) / 0.4) transparent;
+}
+
+.dark .scrollbar-thin::-webkit-scrollbar-thumb {
+  background: hsl(var(--border) / 0.4);
+}
+
+.dark .scrollbar-thin::-webkit-scrollbar-thumb:hover {
+  background: hsl(var(--border) / 0.6);
+}
+
+/* Responsive scrollbar sizing */
+@media (max-width: 768px) {
+  .scrollbar-thin::-webkit-scrollbar {
+    width: 4px;
+    height: 4px;
+  }
+}
+
+/* Print styles - hide scrollbars */
+@media print {
+  .scrollbar-thin,
+  .scrollbar-hide {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar,
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+}
