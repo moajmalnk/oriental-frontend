@@ -266,7 +266,7 @@ export const WorkshopTemplate: React.FC<WorkshopTemplateProps> = ({
                   </span>
                 </p>
 
-                {/* Contact Bar */}
+                {/* Contact  Bar */}
                 <div
                   style={{
                     display: "flex",
@@ -470,3 +470,4 @@ export const WorkshopTemplate: React.FC<WorkshopTemplateProps> = ({
 };
 
 export default WorkshopTemplate;
+
