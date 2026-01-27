@@ -101,24 +101,58 @@ export const ResultTable = ({ student }: ResultTableProps) => {
     </div>
   );
 
-  // Check which practical fields have data
-  const hasPracticalField = (field: keyof (typeof student.Subjects)[0]) => {
-    const practicalSubjects = getPracticalSubjects();
-    const maxField = `${field}_Max` as keyof (typeof student.Subjects)[0];
-    return practicalSubjects.some(
-      (subject) =>
-        (subject[field] !== null && subject[field] !== undefined) ||
-        (subject[maxField] !== null &&
-          subject[maxField] !== undefined &&
-          subject[maxField] !== 0),
+  // Get unique combinations from all subjects
+  const getUniqueCombinations = () => {
+    const combinations = new Map<string, { name: string; fields: string[] }>();
+    getPracticalSubjects().forEach((subject) => {
+      if (subject.practical_settings?.combination) {
+        const { name, fields } = subject.practical_settings.combination;
+        if (!combinations.has(name)) {
+          combinations.set(name, { name, fields });
+        }
+      }
+    });
+    return Array.from(combinations.values());
+  };
+
+  const uniqueCombinations = getUniqueCombinations();
+
+  // Helper to check if a field is hidden for a specific subject
+  const isFieldHidden = (
+    subject: (typeof student.Subjects)[0],
+    fieldKey: string,
+  ) => {
+    const comboFields = subject.practical_settings?.combination?.fields || [];
+    return (
+      !!subject.practical_settings?.combination &&
+      comboFields.includes(fieldKey.toLowerCase())
     );
   };
 
-  const showPE = hasPracticalField("PE");
-  const showPW = hasPracticalField("PW");
-  const showPR = hasPracticalField("PR");
-  const showProject = hasPracticalField("Project");
-  const showVivaPL = hasPracticalField("Viva_PL");
+  // Check if we should show a specific column (globally)
+  const shouldShowColumn = (field: keyof (typeof student.Subjects)[0]) => {
+    const practicalSubjects = getPracticalSubjects();
+    const maxField = `${field}_Max` as keyof (typeof student.Subjects)[0];
+
+    return practicalSubjects.some((subject) => {
+      const hasData =
+        (subject[field] !== null && subject[field] !== undefined) ||
+        (subject[maxField] !== null &&
+          subject[maxField] !== undefined &&
+          subject[maxField] !== 0);
+
+      if (!hasData) return false;
+
+      // Ensure field is NOT hidden in this subject
+      return !isFieldHidden(subject, field as string);
+    });
+  };
+
+  const showPE = shouldShowColumn("PE");
+  const showPW = shouldShowColumn("PW");
+  const showPR = shouldShowColumn("PR");
+  const showProject = shouldShowColumn("Project");
+  const showVivaPL = shouldShowColumn("Viva_PL");
 
   const MobilePracticalRow = ({
     subject,
@@ -361,6 +395,14 @@ export const ResultTable = ({ student }: ResultTableProps) => {
                           <th className="text-left p-2 sm:p-3 md:p-4 lg:p-6 font-semibold text-foreground min-w-[120px] text-xs sm:text-sm md:text-base">
                             Subject
                           </th>
+                          {uniqueCombinations.map((combo) => (
+                            <th
+                              key={combo.name}
+                              className="text-center p-2 sm:p-3 md:p-4 lg:p-6 font-semibold text-foreground min-w-[80px] sm:min-w-[100px] text-xs sm:text-sm md:text-base border-r border-border/50"
+                            >
+                              {combo.name}
+                            </th>
+                          ))}
                           {showPE && (
                             <th className="text-center p-2 sm:p-3 md:p-4 lg:p-6 font-semibold text-foreground min-w-[60px] sm:min-w-[80px] text-xs sm:text-sm md:text-base">
                               P.E
@@ -400,31 +442,95 @@ export const ResultTable = ({ student }: ResultTableProps) => {
                             <td className="p-2 sm:p-3 md:p-4 lg:p-6 font-medium text-foreground text-xs sm:text-sm md:text-base">
                               {subject.SubjectName}
                             </td>
+                            {uniqueCombinations.map((combo) => {
+                              // Check if this subject uses this combination
+                              const subjectCombo =
+                                subject.practical_settings?.combination;
+                              const isThisCombo =
+                                subjectCombo &&
+                                subjectCombo.name === combo.name;
+
+                              let cellValue: number | string | null = "-";
+
+                              if (isThisCombo) {
+                                // Calculate total for this combination
+                                const comboFields = subjectCombo.fields || [];
+                                const total = comboFields.reduce(
+                                  (sum, field) => {
+                                    const fieldKey = field.toUpperCase();
+                                    let val = 0;
+                                    switch (fieldKey) {
+                                      case "PE":
+                                        val = subject.PE || 0;
+                                        break;
+                                      case "PW":
+                                        val = subject.PW || 0;
+                                        break;
+                                      case "PR":
+                                        val = subject.PR || 0;
+                                        break;
+                                      case "PROJECT":
+                                        val = subject.Project || 0;
+                                        break;
+                                      case "VIVA_PL":
+                                        val = subject.Viva_PL || 0;
+                                        break;
+                                    }
+                                    return sum + val;
+                                  },
+                                  0,
+                                );
+                                cellValue = total;
+                              }
+
+                              return (
+                                <td
+                                  key={combo.name}
+                                  className="text-center p-2 sm:p-3 md:p-4 lg:p-6 font-mono text-xs sm:text-sm md:text-base border-r border-border/50"
+                                >
+                                  {cellValue !== "-"
+                                    ? formatScore(cellValue)
+                                    : "-"}
+                                </td>
+                              );
+                            })}
+
                             {showPE && (
                               <td className="text-center p-2 sm:p-3 md:p-4 lg:p-6 font-mono text-xs sm:text-sm md:text-base">
-                                {formatScore(subject.PE)}
+                                {!isFieldHidden(subject, "pe")
+                                  ? formatScore(subject.PE)
+                                  : "-"}
                               </td>
                             )}
                             {showPW && (
                               <td className="text-center p-2 sm:p-3 md:p-4 lg:p-6 font-mono text-xs sm:text-sm md:text-base">
-                                {formatScore(subject.PW)}
+                                {!isFieldHidden(subject, "pw")
+                                  ? formatScore(subject.PW)
+                                  : "-"}
                               </td>
                             )}
                             {showPR && (
                               <td className="text-center p-2 sm:p-3 md:p-4 lg:p-6 font-mono text-xs sm:text-sm md:text-base">
-                                {formatScore(subject.PR)}
+                                {!isFieldHidden(subject, "pr")
+                                  ? formatScore(subject.PR)
+                                  : "-"}
                               </td>
                             )}
                             {showProject && (
                               <td className="text-center p-2 sm:p-3 md:p-4 lg:p-6 font-mono text-xs sm:text-sm md:text-base">
-                                {formatScore(subject.Project)}
+                                {!isFieldHidden(subject, "project")
+                                  ? formatScore(subject.Project)
+                                  : "-"}
                               </td>
                             )}
                             {showVivaPL && (
                               <td className="text-center p-2 sm:p-3 md:p-4 lg:p-6 font-mono text-xs sm:text-sm md:text-base">
-                                {formatScore(subject.Viva_PL)}
+                                {!isFieldHidden(subject, "viva_pl")
+                                  ? formatScore(subject.Viva_PL)
+                                  : "-"}
                               </td>
                             )}
+
                             <td className="text-center p-2 sm:p-3 md:p-4 lg:p-6 font-bold text-success font-mono text-sm sm:text-base md:text-lg">
                               {formatScore(subject.PracticalTotal)}
                             </td>
@@ -646,6 +752,14 @@ export const ResultTable = ({ student }: ResultTableProps) => {
                                 <th className="text-left p-3 sm:p-4 md:p-6 font-semibold text-foreground min-w-[180px] text-sm sm:text-base">
                                   Subject
                                 </th>
+                                {uniqueCombinations.map((combo) => (
+                                  <th
+                                    key={combo.name}
+                                    className="text-center p-3 sm:p-4 md:p-6 font-semibold text-foreground min-w-[100px] text-sm sm:text-base border-r border-border/50"
+                                  >
+                                    {combo.name}
+                                  </th>
+                                ))}
                                 {showPE && (
                                   <th className="text-center p-3 sm:p-4 md:p-6 font-semibold text-foreground min-w-[80px] text-sm sm:text-base">
                                     P.E
@@ -685,29 +799,91 @@ export const ResultTable = ({ student }: ResultTableProps) => {
                                   <td className="p-3 sm:p-4 md:p-6 font-medium text-foreground text-sm sm:text-base">
                                     {subject.SubjectName}
                                   </td>
+                                  {uniqueCombinations.map((combo) => {
+                                    // Check if this subject uses this combination
+                                    const subjectCombo =
+                                      subject.practical_settings?.combination;
+                                    const isThisCombo =
+                                      subjectCombo &&
+                                      subjectCombo.name === combo.name;
+
+                                    let cellValue: number | string | null = "-";
+
+                                    if (isThisCombo) {
+                                      // Calculate total max for this combination
+                                      const comboFields =
+                                        subjectCombo.fields || [];
+                                      const total = comboFields.reduce(
+                                        (sum, field) => {
+                                          const fieldKey = field.toUpperCase();
+                                          let val = 0;
+                                          switch (fieldKey) {
+                                            case "PE":
+                                              val = subject.PE_Max || 0;
+                                              break;
+                                            case "PW":
+                                              val = subject.PW_Max || 0;
+                                              break;
+                                            case "PR":
+                                              val = subject.PR_Max || 0;
+                                              break;
+                                            case "PROJECT":
+                                              val = subject.Project_Max || 0;
+                                              break;
+                                            case "VIVA_PL":
+                                              val = subject.Viva_PL_Max || 0;
+                                              break;
+                                          }
+                                          return sum + val;
+                                        },
+                                        0,
+                                      );
+                                      cellValue = total;
+                                    }
+
+                                    return (
+                                      <td
+                                        key={combo.name}
+                                        className="text-center p-3 sm:p-4 md:p-6 font-mono text-sm sm:text-base border-r border-border/50"
+                                      >
+                                        {cellValue !== "-" ? cellValue : "-"}
+                                      </td>
+                                    );
+                                  })}
+
                                   {showPE && (
                                     <td className="text-center p-3 sm:p-4 md:p-6 font-mono text-sm sm:text-base">
-                                      {subject.PE_Max || "-"}
+                                      {!isFieldHidden(subject, "pe")
+                                        ? subject.PE_Max || "-"
+                                        : "-"}
                                     </td>
                                   )}
                                   {showPW && (
                                     <td className="text-center p-3 sm:p-4 md:p-6 font-mono text-sm sm:text-base">
-                                      {subject.PW_Max || "-"}
+                                      {!isFieldHidden(subject, "pw")
+                                        ? subject.PW_Max || "-"
+                                        : "-"}
                                     </td>
                                   )}
                                   {showPR && (
                                     <td className="text-center p-3 sm:p-4 md:p-6 font-mono text-sm sm:text-base">
-                                      {subject.PR_Max || "-"}
+                                      {!isFieldHidden(subject, "pr")
+                                        ? subject.PR_Max || "-"
+                                        : "-"}
                                     </td>
                                   )}
                                   {showProject && (
                                     <td className="text-center p-3 sm:p-4 md:p-6 font-mono text-sm sm:text-base">
-                                      {subject.Project_Max || "-"}
+                                      {!isFieldHidden(subject, "project")
+                                        ? subject.Project_Max || "-"
+                                        : "-"}
                                     </td>
                                   )}
                                   {showVivaPL && (
                                     <td className="text-center p-3 sm:p-4 md:p-6 font-mono text-sm sm:text-base">
-                                      {subject.Viva_PL_Max || "-"}
+                                      {!isFieldHidden(subject, "viva_pl")
+                                        ? subject.Viva_PL_Max || "-"
+                                        : "-"}
                                     </td>
                                   )}
                                   <td className="text-center p-3 sm:p-4 md:p-6 font-bold text-success font-mono text-base sm:text-lg">
