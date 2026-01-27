@@ -2641,7 +2641,7 @@ const StudentResults: React.FC = () => {
                     <SelectTrigger className="text-sm sm:text-base">
                       <SelectValue placeholder="Select a student" />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent className="max-h-[200px] overflow-y-auto">
                       {students.map((student) => (
                         <SelectItem
                           key={student.id}
