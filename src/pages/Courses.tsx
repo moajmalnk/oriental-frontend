@@ -22,6 +22,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Card,
   CardContent,
@@ -265,6 +266,7 @@ const Courses: React.FC = () => {
           project_max: null,
           viva_max: null,
           pl_max: null,
+          practical_settings: null,
         },
       ],
     });
@@ -294,6 +296,7 @@ const Courses: React.FC = () => {
                   project_max: null,
                   viva_max: null,
                   pl_max: null,
+                  practical_settings: null,
                 },
               ],
       });
@@ -348,6 +351,22 @@ const Courses: React.FC = () => {
       if (hasTheory && hasPractical) {
         newErrors[`subject_${index}`] =
           "Subject cannot have both theory and practical marks";
+      }
+
+      // Validate combined fields
+      if (
+        subject.practical_settings?.combination &&
+        subject.practical_settings.combination.fields.length > 0
+      ) {
+        const combo = subject.practical_settings.combination;
+        if (!combo.name.trim()) {
+          newErrors[`subject_${index}_combo_name`] =
+            "Combined field name is required";
+        }
+        if (combo.fields.length < 2) {
+          newErrors[`subject_${index}_combo_fields`] =
+            "Select at least 2 fields to combine";
+        }
       }
     });
 
@@ -450,6 +469,7 @@ const Courses: React.FC = () => {
           project_max: null,
           viva_max: null,
           pl_max: null,
+          practical_settings: null,
         },
       ],
     });
@@ -467,6 +487,40 @@ const Courses: React.FC = () => {
   const updateSubject = (index: number, field: keyof Subject, value: any) => {
     const newSubjects = [...formData.subjects];
     newSubjects[index] = { ...newSubjects[index], [field]: value };
+    setFormData({ ...formData, subjects: newSubjects });
+  };
+
+  const updateSubjectCombination = (
+    index: number,
+    field: "name" | "fields" | "enabled",
+    value: any,
+  ) => {
+    const newSubjects = [...formData.subjects];
+    const subject = newSubjects[index];
+
+    if (!subject.practical_settings) {
+      subject.practical_settings = { combination: null };
+    }
+
+    if (field === "enabled") {
+      if (value) {
+        // Enable combination
+        subject.practical_settings.combination = {
+          name: "",
+          fields: [],
+        };
+      } else {
+        // Disable combination
+        subject.practical_settings.combination = null;
+      }
+    } else if (subject.practical_settings.combination) {
+      if (field === "name") {
+        subject.practical_settings.combination.name = value;
+      } else if (field === "fields") {
+        subject.practical_settings.combination.fields = value;
+      }
+    }
+
     setFormData({ ...formData, subjects: newSubjects });
   };
 
@@ -1874,6 +1928,166 @@ const Courses: React.FC = () => {
                               </div>
                             </div>
                           </div>
+
+                          {/* Combined Fields Configuration */}
+                          {((subject.pe_max !== null &&
+                            subject.pe_max !== undefined) ||
+                            (subject.pw_max !== null &&
+                              subject.pw_max !== undefined) ||
+                            (subject.pr_max !== null &&
+                              subject.pr_max !== undefined) ||
+                            (subject.project_max !== null &&
+                              subject.project_max !== undefined) ||
+                            (subject.viva_max !== null &&
+                              subject.viva_max !== undefined) ||
+                            (subject.pl_max !== null &&
+                              subject.pl_max !== undefined)) && (
+                            <div className="pt-4 border-t mt-4">
+                              <div className="flex items-center space-x-2 mb-4">
+                                <Checkbox
+                                  id={`combine_fields_${index}`}
+                                  checked={
+                                    !!subject.practical_settings?.combination
+                                  }
+                                  onCheckedChange={(checked) =>
+                                    updateSubjectCombination(
+                                      index,
+                                      "enabled",
+                                      checked,
+                                    )
+                                  }
+                                />
+                                <Label
+                                  htmlFor={`combine_fields_${index}`}
+                                  className="text-sm font-medium"
+                                >
+                                  Combine Practical Fields option (Combine
+                                  multiple fields into one column)
+                                </Label>
+                              </div>
+
+                              {subject.practical_settings?.combination && (
+                                <div className="space-y-4 pl-4 sm:pl-6 border-l-2 border-muted ml-1 sm:ml-2">
+                                  <div className="space-y-2">
+                                    <Label htmlFor={`combo_name_${index}`}>
+                                      Combined Field Name *
+                                    </Label>
+                                    <Input
+                                      id={`combo_name_${index}`}
+                                      value={
+                                        subject.practical_settings.combination
+                                          .name
+                                      }
+                                      onChange={(e) =>
+                                        updateSubjectCombination(
+                                          index,
+                                          "name",
+                                          e.target.value,
+                                        )
+                                      }
+                                      placeholder="e.g., Lab Assessment"
+                                      className="text-sm"
+                                    />
+                                    {errors[`subject_${index}_combo_name`] && (
+                                      <p className="text-xs text-destructive">
+                                        {errors[`subject_${index}_combo_name`]}
+                                      </p>
+                                    )}
+                                  </div>
+
+                                  <div className="space-y-2">
+                                    <Label>Select Fields to Combine *</Label>
+                                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                                      {[
+                                        {
+                                          key: "pe",
+                                          label: "P.E",
+                                          max: subject.pe_max,
+                                        },
+                                        {
+                                          key: "pw",
+                                          label: "P.W",
+                                          max: subject.pw_max,
+                                        },
+                                        {
+                                          key: "pr",
+                                          label: "P.R",
+                                          max: subject.pr_max,
+                                        },
+                                        {
+                                          key: "project",
+                                          label: "Project",
+                                          max: subject.project_max,
+                                        },
+                                        {
+                                          key: "viva",
+                                          label: "Viva",
+                                          max: subject.viva_max,
+                                        },
+                                        {
+                                          key: "pl",
+                                          label: "PL",
+                                          max: subject.pl_max,
+                                        },
+                                      ].map((field) => (
+                                        <div
+                                          key={field.key}
+                                          className="flex items-center space-x-2"
+                                        >
+                                          <Checkbox
+                                            id={`combo_${index}_${field.key}`}
+                                            checked={subject.practical_settings?.combination?.fields.includes(
+                                              field.key,
+                                            )}
+                                            disabled={!field.max}
+                                            onCheckedChange={(checked) => {
+                                              const currentFields =
+                                                subject.practical_settings
+                                                  ?.combination?.fields || [];
+                                              let newFields = [];
+                                              if (checked) {
+                                                newFields = [
+                                                  ...currentFields,
+                                                  field.key,
+                                                ];
+                                              } else {
+                                                newFields =
+                                                  currentFields.filter(
+                                                    (f) => f !== field.key,
+                                                  );
+                                              }
+                                              updateSubjectCombination(
+                                                index,
+                                                "fields",
+                                                newFields,
+                                              );
+                                            }}
+                                          />
+                                          <Label
+                                            htmlFor={`combo_${index}_${field.key}`}
+                                            className={`text-sm ${!field.max ? "text-muted-foreground opacity-50" : ""}`}
+                                          >
+                                            {field.label}
+                                          </Label>
+                                        </div>
+                                      ))}
+                                    </div>
+                                    {errors[
+                                      `subject_${index}_combo_fields`
+                                    ] && (
+                                      <p className="text-xs text-destructive">
+                                        {
+                                          errors[
+                                            `subject_${index}_combo_fields`
+                                          ]
+                                        }
+                                      </p>
+                                    )}
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                          )}
 
                           {errors[`subject_${index}`] && (
                             <p className="text-xs sm:text-sm text-destructive">

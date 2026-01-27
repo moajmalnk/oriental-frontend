@@ -123,85 +123,127 @@ export const ResultTable = ({ student }: ResultTableProps) => {
 
   const MobilePracticalRow = ({
     subject,
-    pw,
-    pe,
-    pr,
-    project,
-    viva,
-    pl,
-    total,
   }: {
-    subject: string;
-    pw: number | string | null;
-    pe: number | string | null;
-    pr: number | string | null;
-    project: number | string | null;
-    viva: number | string | null;
-    pl: number | string | null;
-    total: number | string | null;
-  }) => (
-    <div className="bg-gradient-card rounded-lg p-3 sm:p-4 border border-border/50 space-y-2 sm:space-y-3">
-      <h4 className="font-semibold text-foreground text-xs sm:text-sm break-words">
-        {subject}
-      </h4>
-      <div className="grid grid-cols-3 gap-1 sm:gap-2 text-xs">
-        {showPE && (
-          <div className="text-center">
-            <span className="text-muted-foreground block text-xs">P.E</span>
-            <span className="font-mono font-medium text-sm">
-              {formatScore(pe)}
+    subject: (typeof student.Subjects)[0];
+  }) => {
+    const isCombined = !!subject.practical_settings?.combination;
+    const comboName = subject.practical_settings?.combination?.name;
+    const comboFields = subject.practical_settings?.combination?.fields || [];
+    const comboValue = comboFields.reduce((sum, field) => {
+      const fieldKey = field.toUpperCase();
+      // Map field key to property name (e.g., 'pe' -> 'PE')
+      // Note: SubjectMark interface keys are uppercase (PE, PW, etc)
+      // Check types/index.ts for exact keys.
+      // Based on previous code, keys are PE, PW, PR, Project, Viva, PL.
+      let val = 0;
+      switch (fieldKey) {
+        case "PE":
+          val = subject.PE || 0;
+          break;
+        case "PW":
+          val = subject.PW || 0;
+          break;
+        case "PR":
+          val = subject.PR || 0;
+          break;
+        case "PROJECT":
+          val = subject.Project || 0;
+          break;
+        case "VIVA":
+          val = subject.Viva || 0;
+          break;
+        case "PL":
+          val = subject.PL || 0;
+          break;
+      }
+      return sum + val;
+    }, 0);
+
+    // Helper to check if field is hidden by combination
+    const isHidden = (fieldKey: string) =>
+      isCombined && comboFields.includes(fieldKey.toLowerCase());
+
+    return (
+      <div className="bg-gradient-card rounded-lg p-3 sm:p-4 border border-border/50 space-y-2 sm:space-y-3">
+        <h4 className="font-semibold text-foreground text-xs sm:text-sm break-words">
+          {subject.SubjectName}
+        </h4>
+        <div className="grid grid-cols-3 gap-1 sm:gap-2 text-xs">
+          {/* Render Combined Field if exists */}
+          {isCombined && (
+            <div className="text-center col-span-1 border-r border-border/30">
+              <span
+                className="text-muted-foreground block text-xs truncate"
+                title={comboName}
+              >
+                {comboName}
+              </span>
+              <span className="font-mono font-medium text-sm">
+                {formatScore(comboValue)}
+              </span>
+            </div>
+          )}
+
+          {/* Render Standard Fields (if not hidden) */}
+          {showPE && !isHidden("pe") && (
+            <div className="text-center">
+              <span className="text-muted-foreground block text-xs">P.E</span>
+              <span className="font-mono font-medium text-sm">
+                {formatScore(subject.PE)}
+              </span>
+            </div>
+          )}
+          {showPW && !isHidden("pw") && (
+            <div className="text-center">
+              <span className="text-muted-foreground block text-xs">P.W</span>
+              <span className="font-mono font-medium text-sm">
+                {formatScore(subject.PW)}
+              </span>
+            </div>
+          )}
+          {showPR && !isHidden("pr") && (
+            <div className="text-center">
+              <span className="text-muted-foreground block text-xs">P.R</span>
+              <span className="font-mono font-medium text-sm">
+                {formatScore(subject.PR)}
+              </span>
+            </div>
+          )}
+          {showProject && !isHidden("project") && (
+            <div className="text-center">
+              <span className="text-muted-foreground block text-xs">Proj</span>
+              <span className="font-mono font-medium text-sm">
+                {formatScore(subject.Project)}
+              </span>
+            </div>
+          )}
+          {showViva && !isHidden("viva") && (
+            <div className="text-center">
+              <span className="text-muted-foreground block text-xs">Viva</span>
+              <span className="font-mono font-medium text-sm">
+                {formatScore(subject.Viva)}
+              </span>
+            </div>
+          )}
+          {showPL && !isHidden("pl") && (
+            <div className="text-center">
+              <span className="text-muted-foreground block text-xs">PL</span>
+              <span className="font-mono font-medium text-sm">
+                {formatScore(subject.PL)}
+              </span>
+            </div>
+          )}
+
+          <div className="text-center border-l border-border/30">
+            <span className="text-muted-foreground block text-xs">Total</span>
+            <span className="font-mono font-bold text-success text-sm">
+              {formatScore(subject.PracticalTotal)}
             </span>
           </div>
-        )}
-        {showPW && (
-          <div className="text-center">
-            <span className="text-muted-foreground block text-xs">P.W</span>
-            <span className="font-mono font-medium text-sm">
-              {formatScore(pw)}
-            </span>
-          </div>
-        )}
-        {showPR && (
-          <div className="text-center">
-            <span className="text-muted-foreground block text-xs">P.R</span>
-            <span className="font-mono font-medium text-sm">
-              {formatScore(pr)}
-            </span>
-          </div>
-        )}
-        {showProject && (
-          <div className="text-center">
-            <span className="text-muted-foreground block text-xs">Proj</span>
-            <span className="font-mono font-medium text-sm">
-              {formatScore(project)}
-            </span>
-          </div>
-        )}
-        {showViva && (
-          <div className="text-center">
-            <span className="text-muted-foreground block text-xs">Viva</span>
-            <span className="font-mono font-medium text-sm">
-              {formatScore(viva)}
-            </span>
-          </div>
-        )}
-        {showPL && (
-          <div className="text-center">
-            <span className="text-muted-foreground block text-xs">PL</span>
-            <span className="font-mono font-medium text-sm">
-              {formatScore(pl)}
-            </span>
-          </div>
-        )}
-        <div className="text-center">
-          <span className="text-muted-foreground block text-xs">Total</span>
-          <span className="font-mono font-bold text-success text-sm">
-            {formatScore(total)}
-          </span>
         </div>
       </div>
-    </div>
-  );
+    );
+  };
 
   return (
     <div
@@ -317,17 +359,7 @@ export const ResultTable = ({ student }: ResultTableProps) => {
               {isMobile ? (
                 <div className="space-y-2 sm:space-y-3">
                   {getPracticalSubjects().map((subject, index) => (
-                    <MobilePracticalRow
-                      key={index}
-                      subject={subject.SubjectName}
-                      pw={subject.PW}
-                      pe={subject.PE}
-                      pr={subject.PR}
-                      project={subject.Project}
-                      viva={subject.Viva}
-                      pl={subject.PL}
-                      total={subject.PracticalTotal}
-                    />
+                    <MobilePracticalRow key={index} subject={subject} />
                   ))}
                 </div>
               ) : (

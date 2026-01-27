@@ -196,21 +196,59 @@ export const PrintPDFButtons = ({ student }: PrintPDFButtonsProps) => {
           (subject: any) => subject?.SubjectType === "Practical",
         ) || [];
 
-      let activePracticalFields = allPracticalFields.filter((field) => {
-        return practicalSubjectsList.some(
-          (s: any) =>
+      // Determine all columns (Standard + Combined)
+      let activeColumns: Array<{
+        type: "standard" | "combined";
+        key: string;
+        label: string;
+        maxKey?: string;
+      }> = [];
+
+      // Add Standard Fields
+      allPracticalFields.forEach((field) => {
+        const isActive = practicalSubjectsList.some((s: any) => {
+          // Check if field has data
+          const hasData =
             (s[field.key] !== null && s[field.key] !== undefined) ||
             (s[field.maxKey] !== null &&
               s[field.maxKey] !== undefined &&
-              s[field.maxKey] !== 0),
-        );
+              s[field.maxKey] !== 0);
+
+          // Check if field is hidden by combination
+          const isHidden =
+            s.practical_settings?.combination?.fields?.includes(
+              field.key.toLowerCase(),
+            ) || s.practical_settings?.combination?.fields?.includes(field.key); // check both cases
+
+          return hasData && !isHidden; // Only show if used and NOT hidden
+        });
+
+        if (isActive) {
+          activeColumns.push({ ...field, type: "standard" });
+        }
       });
 
-      // Default to PE and PW if no fields are active (legacy behavior)
-      if (activePracticalFields.length === 0) {
-        activePracticalFields = [
-          { key: "PE", label: "P.E", maxKey: "PE_Max" },
-          { key: "PW", label: "P.W", maxKey: "PW_Max" },
+      // Add Combined Fields
+      const uniqueCombinedNames = new Set<string>();
+      practicalSubjectsList.forEach((s: any) => {
+        if (s.practical_settings?.combination?.name) {
+          uniqueCombinedNames.add(s.practical_settings.combination.name);
+        }
+      });
+
+      uniqueCombinedNames.forEach((name) => {
+        activeColumns.push({
+          type: "combined",
+          key: name,
+          label: name,
+        });
+      });
+
+      // Default to PE and PW if no fields are active (legacy behavior fallback)
+      if (activeColumns.length === 0) {
+        activeColumns = [
+          { type: "standard", key: "PE", label: "P.E", maxKey: "PE_Max" },
+          { type: "standard", key: "PW", label: "P.W", maxKey: "PW_Max" },
         ];
       }
 
@@ -218,8 +256,7 @@ export const PrintPDFButtons = ({ student }: PrintPDFButtonsProps) => {
       const practNameColWidth = 80;
       const practTotalColWidth = 25;
       const availableWidthForMarks = 50;
-      const markColWidth =
-        availableWidthForMarks / activePracticalFields.length;
+      const markColWidth = availableWidthForMarks / activeColumns.length;
 
       // Table header
       pdf.setFontSize(10);
@@ -385,9 +422,9 @@ export const PrintPDFButtons = ({ student }: PrintPDFButtonsProps) => {
         // Draw Header Rectangles and Text
         let currentX = tableStartX + practNameColWidth;
 
-        activePracticalFields.forEach((field) => {
+        activeColumns.forEach((col) => {
           pdf.roundedRect(currentX, currentY - 5, markColWidth, 8, 1.5, 1.5);
-          pdf.text(field.label, currentX + markColWidth / 2, currentY, {
+          pdf.text(col.label, currentX + markColWidth / 2, currentY, {
             align: "center",
           });
           currentX += markColWidth;
@@ -406,14 +443,18 @@ export const PrintPDFButtons = ({ student }: PrintPDFButtonsProps) => {
           align: "center",
         });
 
-        // Draw "PRACTICAL" label in the merged cell
-        pdf.text("PRACTICAL", tableStartX + 3, currentY + 4);
+        // Draw "PRACTICAL" label (or subject name) in the merged cell
+        const practLabel =
+          practicalSubjectsList.length > 0
+            ? practicalSubjectsList[0].SubjectName || "PRACTICAL"
+            : "PRACTICAL";
+        pdf.text(practLabel, tableStartX + 3, currentY + 4);
 
         currentY += 8;
 
         // Draw Data Rectangles
         currentX = tableStartX + practNameColWidth;
-        activePracticalFields.forEach(() => {
+        activeColumns.forEach(() => {
           pdf.roundedRect(currentX, currentY - 5, markColWidth, 8, 1.5, 1.5);
           currentX += markColWidth;
         });
@@ -430,16 +471,49 @@ export const PrintPDFButtons = ({ student }: PrintPDFButtonsProps) => {
         pdf.setFontSize(9);
 
         if (practicalSubjectsList.length > 0) {
-          const practicalSubject = practicalSubjectsList[0]; // Using first practical subject as per original design logic
+          const practicalSubject = practicalSubjectsList[0]; // Using first practical subject
 
           currentX = tableStartX + practNameColWidth;
-          activePracticalFields.forEach((field) => {
-            pdf.text(
-              practicalSubject[field.key]?.toString() || "-",
-              currentX + markColWidth / 2,
-              currentY,
-              { align: "center" },
-            );
+          activeColumns.forEach((col) => {
+            let cellValue = "-";
+
+            if (col.type === "standard") {
+              const pSettings = practicalSubject.practical_settings;
+              const isCombined = !!pSettings?.combination;
+              const isHidden =
+                isCombined &&
+                (pSettings.combination.fields.includes(col.key.toLowerCase()) ||
+                  pSettings.combination.fields.includes(col.key));
+
+              if (!isHidden) {
+                cellValue = practicalSubject[col.key]?.toString() || "-";
+              }
+            } else if (col.type === "combined") {
+              const pSettings = practicalSubject.practical_settings;
+              if (
+                pSettings?.combination &&
+                pSettings.combination.name === col.key
+              ) {
+                // Calculate combo value
+                const comboFields = pSettings.combination.fields;
+                const total = comboFields.reduce((sum: number, f: string) => {
+                  const fk = f.toUpperCase();
+                  let val = 0;
+                  if (fk === "PE") val = practicalSubject.PE || 0;
+                  if (fk === "PW") val = practicalSubject.PW || 0;
+                  if (fk === "PR") val = practicalSubject.PR || 0;
+                  if (fk === "PROJECT") val = practicalSubject.Project || 0;
+                  if (fk === "VIVA") val = practicalSubject.Viva || 0;
+                  if (fk === "PL") val = practicalSubject.PL || 0;
+                  return sum + val;
+                }, 0);
+                cellValue = total.toString();
+              }
+            }
+
+            pdf.text(cellValue, currentX + markColWidth / 2, currentY, {
+              align: "center",
+            });
             currentX += markColWidth;
           });
 
@@ -452,7 +526,7 @@ export const PrintPDFButtons = ({ student }: PrintPDFButtonsProps) => {
         } else {
           // Empty row
           currentX = tableStartX + practNameColWidth;
-          activePracticalFields.forEach(() => {
+          activeColumns.forEach(() => {
             pdf.text("-", currentX + markColWidth / 2, currentY, {
               align: "center",
             });
@@ -637,9 +711,9 @@ export const PrintPDFButtons = ({ student }: PrintPDFButtonsProps) => {
         // Draw Header Rectangles and Text
         let maxCurrentX = tableStartX + practNameColWidth;
 
-        activePracticalFields.forEach((field) => {
+        activeColumns.forEach((col) => {
           pdf.roundedRect(maxCurrentX, currentY - 5, markColWidth, 8, 1.5, 1.5);
-          pdf.text(field.label, maxCurrentX + markColWidth / 2, currentY, {
+          pdf.text(col.label, maxCurrentX + markColWidth / 2, currentY, {
             align: "center",
           });
           maxCurrentX += markColWidth;
@@ -658,14 +732,18 @@ export const PrintPDFButtons = ({ student }: PrintPDFButtonsProps) => {
           align: "center",
         });
 
-        // Draw "PRACTICAL" label in the merged cell
-        pdf.text("PRACTICAL", tableStartX + 3, currentY + 4);
+        // Draw "PRACTICAL" label (or subject name) in the merged cell
+        const practLabel =
+          practicalSubjectsList.length > 0
+            ? practicalSubjectsList[0].SubjectName || "PRACTICAL"
+            : "PRACTICAL";
+        pdf.text(practLabel, tableStartX + 3, currentY + 4);
 
         currentY += 8;
 
         // Draw Data Rectangles
         maxCurrentX = tableStartX + practNameColWidth;
-        activePracticalFields.forEach(() => {
+        activeColumns.forEach(() => {
           pdf.roundedRect(maxCurrentX, currentY - 5, markColWidth, 8, 1.5, 1.5);
           maxCurrentX += markColWidth;
         });
@@ -685,13 +763,58 @@ export const PrintPDFButtons = ({ student }: PrintPDFButtonsProps) => {
           const practicalSubject = practicalSubjectsList[0]; // Using first practical subject
 
           maxCurrentX = tableStartX + practNameColWidth;
-          activePracticalFields.forEach((field) => {
-            pdf.text(
-              practicalSubject[field.maxKey]?.toString() || "-",
-              maxCurrentX + markColWidth / 2,
-              currentY,
-              { align: "center" },
-            );
+          activeColumns.forEach((col) => {
+            let cellValue = "-";
+
+            if (col.type === "standard") {
+              // For standard fields, use maxKey to get the max score
+              if (col.maxKey) {
+                // Check if hidden (shouldn't happen here as activeColumns filters them out, but good safety)
+                const pSettings = practicalSubject.practical_settings;
+                const isCombined = !!pSettings?.combination;
+                const isHidden =
+                  isCombined &&
+                  (pSettings.combination.fields.includes(
+                    col.key.toLowerCase(),
+                  ) ||
+                    pSettings.combination.fields.includes(col.key));
+
+                if (!isHidden) {
+                  cellValue = practicalSubject[col.maxKey]?.toString() || "-";
+                }
+              }
+            } else if (col.type === "combined") {
+              // For combined fields, sum the max scores of constituent fields
+              const pSettings = practicalSubject.practical_settings;
+              if (
+                pSettings?.combination &&
+                pSettings.combination.name === col.key
+              ) {
+                const comboFields = pSettings.combination.fields;
+                // Map field codes to their MAX key counterparts
+                // PE -> PE_Max, etc.
+                const totalMax = comboFields.reduce(
+                  (sum: number, f: string) => {
+                    const fk = f.toUpperCase();
+                    let val = 0;
+                    if (fk === "PE") val = practicalSubject.PE_Max || 0;
+                    if (fk === "PW") val = practicalSubject.PW_Max || 0;
+                    if (fk === "PR") val = practicalSubject.PR_Max || 0;
+                    if (fk === "PROJECT")
+                      val = practicalSubject.Project_Max || 0;
+                    if (fk === "VIVA") val = practicalSubject.Viva_Max || 0;
+                    if (fk === "PL") val = practicalSubject.PL_Max || 0;
+                    return sum + val;
+                  },
+                  0,
+                );
+                cellValue = totalMax.toString();
+              }
+            }
+
+            pdf.text(cellValue, maxCurrentX + markColWidth / 2, currentY, {
+              align: "center",
+            });
             maxCurrentX += markColWidth;
           });
 
@@ -704,7 +827,7 @@ export const PrintPDFButtons = ({ student }: PrintPDFButtonsProps) => {
         } else {
           // Empty row
           maxCurrentX = tableStartX + practNameColWidth;
-          activePracticalFields.forEach(() => {
+          activeColumns.forEach(() => {
             pdf.text("-", maxCurrentX + markColWidth / 2, currentY, {
               align: "center",
             });

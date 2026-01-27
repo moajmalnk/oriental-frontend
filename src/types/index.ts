@@ -76,6 +76,14 @@ export interface Subject {
   theory_total?: number | null;
   practical_total?: number | null;
   overall_total?: number | null;
+  // Combined fields configuration
+  // combination: { name: "Combined Name", fields: ["pe", "pw"] }
+  practical_settings?: {
+    combination?: {
+      name: string;
+      fields: string[];
+    };
+  } | null;
 }
 
 export interface Course {
@@ -155,6 +163,12 @@ export interface SubjectMark {
   TheoryTotal_Max?: number | null;
   PracticalTotal_Max?: number | null;
   OverallTotal_Max?: number | null;
+  practical_settings?: {
+    combination?: {
+      name: string;
+      fields: string[];
+    };
+  } | null;
 }
 
 export interface StudentResult {

@@ -426,6 +426,10 @@ const StudentResults: React.FC = () => {
 
   // Fetch subjects for a course
   const fetchSubjects = async (courseId: number) => {
+    if (!courseId || isNaN(courseId)) {
+      setSubjects([]);
+      return;
+    }
     try {
       const response = await api.get(`/api/course/subjects/${courseId}/`);
       setSubjects(response.data);
@@ -581,6 +585,7 @@ const StudentResults: React.FC = () => {
 
   // Handle course change
   const handleCourseChange = (courseId: number) => {
+    if (!courseId || isNaN(courseId)) return;
     setFormData({ ...formData, course: courseId, batch: 0, marks: [] });
     fetchSubjects(courseId);
   };
