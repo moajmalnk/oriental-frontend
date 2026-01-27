@@ -50,10 +50,13 @@ import { useToast } from "@/hooks/use-toast";
 import { workshopAPI } from "@/services/api";
 import { Workshop, WorkshopFormData } from "@/types";
 import { WorkshopTemplate } from "@/components/WorkshopTemplate";
+import { AdvancedColorPicker } from "@/components/AdvancedColorPicker";
+import { DatePicker } from "@/components/ui/date-picker";
 
 // Default certificate colors
 const DEFAULT_COLORS = {
   background_color: "#ffffff",
+  center_background_color: "#ffffff",
   border_color: "#4b9164",
   title_color: "#4b9164",
   name_color: "#4b9164",
@@ -244,6 +247,8 @@ const Workshops: React.FC = () => {
         logo: null, // Don't pre-fill file, but show existing logo
         background_color:
           workshop.background_color || DEFAULT_COLORS.background_color,
+        center_background_color:
+          workshop.center_background_color || DEFAULT_COLORS.center_background_color,
         border_color: workshop.border_color,
         title_color: workshop.title_color,
         name_color: workshop.name_color,
@@ -459,51 +464,7 @@ const Workshops: React.FC = () => {
     return formatDate(workshop.start_date);
   };
 
-  // Color picker component
-  const ColorPicker = ({
-    label,
-    value,
-    onChange,
-    description,
-  }: {
-    label: string;
-    value: string;
-    onChange: (value: string) => void;
-    description?: string;
-  }) => (
-    <div className="space-y-2">
-      <Label className="text-sm font-medium">{label}</Label>
-      {description && (
-        <p className="text-xs text-muted-foreground">{description}</p>
-      )}
-      <div className="flex items-center gap-3">
-        <div
-          className="w-10 h-10 rounded-lg border-2 border-gray-300 cursor-pointer shadow-sm"
-          style={{ backgroundColor: value }}
-          onClick={() => {
-            const input = document.getElementById(
-              `color-${label.replace(/\s/g, "-")}`
-            );
-            input?.click();
-          }}
-        />
-        <Input
-          id={`color-${label.replace(/\s/g, "-")}`}
-          type="color"
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          className="w-20 h-10 p-1 cursor-pointer"
-        />
-        <Input
-          type="text"
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          className="w-24 font-mono text-sm"
-          placeholder="#000000"
-        />
-      </div>
-    </div>
-  );
+  // Using AdvancedColorPicker component from @/components/AdvancedColorPicker
 
   // Create a preview workshop object from form data
   const getPreviewWorkshop = (): Workshop => ({
@@ -520,6 +481,8 @@ const Workshops: React.FC = () => {
     logo_url: logoPreview || (editingWorkshop?.logo_url) || null,
     background_color:
       formData.background_color || DEFAULT_COLORS.background_color,
+    center_background_color:
+      formData.center_background_color || DEFAULT_COLORS.center_background_color,
     border_color: formData.border_color,
     title_color: formData.title_color,
     name_color: formData.name_color,
@@ -696,50 +659,87 @@ const Workshops: React.FC = () => {
               className="hover:shadow-lg transition-shadow"
             >
               <CardContent className="p-4 sm:p-6">
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                  {/* Left Section - Workshop Info */}
-                  <div className="flex-1 space-y-3">
-                    <div className="flex items-start gap-3">
-                      <div
-                        className="p-2 rounded-lg flex-shrink-0"
-                        style={{ backgroundColor: `${workshop.border_color}20` }}
-                      >
-                        <Award
-                          className="h-5 w-5"
-                          style={{ color: workshop.border_color }}
-                        />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <h3 className="text-lg font-semibold mb-1 truncate">
-                          {workshop.name}
-                        </h3>
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <Badge variant="secondary" className="text-xs">
-                            <Clock className="h-3 w-3 mr-1" />
-                            {workshop.duration_days} day
-                            {workshop.duration_days > 1 ? "s" : ""}
-                          </Badge>
-                          <Badge variant="outline" className="text-xs">
-                            <Calendar className="h-3 w-3 mr-1" />
-                            {getDateRangeDisplay(workshop)}
-                          </Badge>
-                          <Badge variant="outline" className="text-xs">
-                            <MapPin className="h-3 w-3 mr-1" />
-                            {workshop.place}
-                          </Badge>
+                <div className="flex flex-col gap-4">
+                  {/* Top Row - Workshop Info and Actions */}
+                  <div className="flex flex-col sm:flex-row sm:items-start gap-3 sm:gap-4">
+                    {/* Left Section - Workshop Info */}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-start gap-3">
+                        <div
+                          className="p-2 rounded-lg flex-shrink-0"
+                          style={{ backgroundColor: `${workshop.border_color}20` }}
+                        >
+                          <Award
+                            className="h-5 w-5"
+                            style={{ color: workshop.border_color }}
+                          />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <h3 className="text-base sm:text-lg font-semibold mb-1 truncate">
+                            {workshop.name}
+                          </h3>
+                          <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
+                            <Badge variant="secondary" className="text-xs">
+                              <Clock className="h-3 w-3 mr-1" />
+                              {workshop.duration_days} day
+                              {workshop.duration_days > 1 ? "s" : ""}
+                            </Badge>
+                            <Badge variant="outline" className="text-xs max-w-[140px] sm:max-w-none truncate">
+                              <Calendar className="h-3 w-3 mr-1 flex-shrink-0" />
+                              <span className="truncate">{getDateRangeDisplay(workshop)}</span>
+                            </Badge>
+                            <Badge variant="outline" className="text-xs max-w-[100px] sm:max-w-none truncate">
+                              <MapPin className="h-3 w-3 mr-1 flex-shrink-0" />
+                              <span className="truncate">{workshop.place}</span>
+                            </Badge>
+                          </div>
                         </div>
                       </div>
                     </div>
 
+                    {/* Right Section - Actions (Always visible) */}
+                    <div className="flex items-center gap-2 flex-shrink-0 self-start sm:self-center">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => openPreview(workshop)}
+                        className="gap-1.5 h-8 px-2.5 sm:px-3"
+                      >
+                        <Eye className="h-4 w-4" />
+                        <span className="hidden sm:inline">Preview</span>
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => openDialog(workshop)}
+                        className="gap-1.5 h-8 px-2.5 sm:px-3"
+                      >
+                        <Edit className="h-4 w-4" />
+                        <span className="hidden sm:inline">Edit</span>
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => openDeleteDialog(workshop)}
+                        className="gap-1.5 h-8 px-2.5 sm:px-3 text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 hover:bg-red-50 dark:hover:bg-red-950"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                        <span className="hidden sm:inline">Delete</span>
+                      </Button>
+                    </div>
+                  </div>
+
+                  {/* Bottom Row - Description and Colors */}
+                  <div className="space-y-2 pl-0 sm:pl-11">
                     {/* Description Preview */}
                     {workshop.description && (
-                      <p className="text-sm text-muted-foreground pl-12 line-clamp-2">
+                      <p className="text-sm text-muted-foreground line-clamp-2">
                         {workshop.description}
                       </p>
                     )}
 
                     {/* Color Preview */}
-                    <div className="flex items-center gap-2 pl-12">
+                    <div className="flex items-center gap-2">
                       <span className="text-xs text-muted-foreground">
                         Certificate colors:
                       </span>
@@ -775,37 +775,6 @@ const Workshops: React.FC = () => {
                       </div>
                     </div>
                   </div>
-
-                  {/* Right Section - Actions */}
-                  <div className="flex items-center gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => openPreview(workshop)}
-                      className="gap-1"
-                    >
-                      <Eye className="h-4 w-4" />
-                      <span className="hidden sm:inline">Preview</span>
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => openDialog(workshop)}
-                      className="gap-1"
-                    >
-                      <Edit className="h-4 w-4" />
-                      <span className="hidden sm:inline">Edit</span>
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => openDeleteDialog(workshop)}
-                      className="gap-1 text-red-600 hover:text-red-700 hover:bg-red-50"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                      <span className="hidden sm:inline">Delete</span>
-                    </Button>
-                  </div>
                 </div>
               </CardContent>
             </Card>
@@ -814,20 +783,22 @@ const Workshops: React.FC = () => {
 
         {/* Pagination Controls */}
         {filteredWorkshops.length > 0 && totalPages > 1 && (
-          <div className="flex items-center justify-between">
-            <div className="text-sm text-muted-foreground">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
+            <div className="text-xs sm:text-sm text-muted-foreground text-center sm:text-left">
               Showing {startIndex + 1} to{" "}
               {Math.min(endIndex, filteredWorkshops.length)} of{" "}
               {filteredWorkshops.length} workshops
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1 sm:gap-2">
               <Button
                 variant="outline"
                 size="sm"
                 onClick={goToPreviousPage}
                 disabled={currentPage === 1}
+                className="h-8 px-2 sm:px-3 text-xs sm:text-sm"
               >
-                Previous
+                <span className="hidden sm:inline">Previous</span>
+                <span className="sm:hidden">Prev</span>
               </Button>
 
               <div className="flex items-center gap-1">
@@ -844,7 +815,7 @@ const Workshops: React.FC = () => {
                           variant={currentPage === page ? "default" : "outline"}
                           size="sm"
                           onClick={() => goToPage(page)}
-                          className="w-8 h-8 p-0"
+                          className="w-7 h-7 sm:w-8 sm:h-8 p-0 text-xs sm:text-sm"
                         >
                           {page}
                         </Button>
@@ -854,7 +825,7 @@ const Workshops: React.FC = () => {
                       page === currentPage + 2
                     ) {
                       return (
-                        <span key={page} className="text-muted-foreground">
+                        <span key={page} className="text-muted-foreground text-xs">
                           ...
                         </span>
                       );
@@ -869,6 +840,7 @@ const Workshops: React.FC = () => {
                 size="sm"
                 onClick={goToNextPage}
                 disabled={currentPage === totalPages}
+                className="h-8 px-2 sm:px-3 text-xs sm:text-sm"
               >
                 Next
               </Button>
@@ -911,7 +883,7 @@ const Workshops: React.FC = () => {
 
         {/* Workshop Form Dialog */}
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
+          <DialogContent className="max-w-6xl w-[95vw] sm:w-auto max-h-[90vh] overflow-y-auto p-4 sm:p-6">
             <DialogHeader>
               <DialogTitle>
                 {editingWorkshop ? "Edit Workshop" : "Create New Workshop"}
@@ -926,13 +898,13 @@ const Workshops: React.FC = () => {
             <form onSubmit={handleSubmit}>
               <Tabs value={activeTab} onValueChange={setActiveTab}>
                 <TabsList className="grid w-full grid-cols-2">
-                  <TabsTrigger value="details" className="gap-2">
-                    <FileText className="h-4 w-4" />
-                    Workshop Details
+                  <TabsTrigger value="details" className="gap-1 sm:gap-2 text-xs sm:text-sm px-2 sm:px-3">
+                    <FileText className="h-3 w-3 sm:h-4 sm:w-4" />
+                    <span className="hidden sm:inline">Workshop </span>Details
                   </TabsTrigger>
-                  <TabsTrigger value="certificate" className="gap-2">
-                    <Palette className="h-4 w-4" />
-                    Certificate Design
+                  <TabsTrigger value="certificate" className="gap-1 sm:gap-2 text-xs sm:text-sm px-2 sm:px-3">
+                    <Palette className="h-3 w-3 sm:h-4 sm:w-4" />
+                    <span className="hidden sm:inline">Certificate </span>Design
                   </TabsTrigger>
                 </TabsList>
 
@@ -986,16 +958,15 @@ const Workshops: React.FC = () => {
 
                     <div className="space-y-2">
                       <Label htmlFor="start_date">Start Date *</Label>
-                      <Input
-                        id="start_date"
-                        type="date"
+                      <DatePicker
                         value={formData.start_date}
-                        onChange={(e) =>
+                        onChange={(value) =>
                           setFormData({
                             ...formData,
-                            start_date: e.target.value,
+                            start_date: value,
                           })
                         }
+                        placeholder="Select start date"
                       />
                       {errors.start_date && (
                         <p className="text-sm text-destructive">
@@ -1008,34 +979,17 @@ const Workshops: React.FC = () => {
                       <Label htmlFor="end_date">
                         End Date (Optional for multi-day workshops)
                       </Label>
-                      <div className="flex gap-2">
-                        <Input
-                          id="end_date"
-                          type="date"
-                          value={formData.end_date || ""}
-                          onChange={(e) =>
-                            setFormData({
-                              ...formData,
-                              end_date: e.target.value || null,
-                            })
-                          }
-                          className="flex-1"
-                        />
-                        {formData.end_date && (
-                          <Button
-                            type="button"
-                            variant="outline"
-                            size="icon"
-                            onClick={() =>
-                              setFormData({ ...formData, end_date: null })
-                            }
-                            className="shrink-0"
-                            title="Clear end date"
-                          >
-                            <X className="h-4 w-4" />
-                          </Button>
-                        )}
-                      </div>
+                      <DatePicker
+                        value={formData.end_date || ""}
+                        onChange={(value) =>
+                          setFormData({
+                            ...formData,
+                            end_date: value || null,
+                          })
+                        }
+                        placeholder="Select end date (optional)"
+                        minDate={formData.start_date}
+                      />
                       {errors.end_date && (
                         <p className="text-sm text-destructive">
                           {errors.end_date}
@@ -1079,10 +1033,10 @@ const Workshops: React.FC = () => {
                     </div>
 
                     {/* Signatory / Authority Configuration */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:col-span-2 border p-4 rounded-lg bg-gray-50/50">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4 md:col-span-2 border p-3 sm:p-4 rounded-lg bg-gray-50/50 dark:bg-gray-900/50">
                       <div className="md:col-span-2 flex items-center gap-2 mb-1">
-                        <PenTool className="h-4 w-4 text-muted-foreground" />
-                        <h4 className="font-medium text-sm">Certificate Signatory Authority</h4>
+                        <PenTool className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                        <h4 className="font-medium text-xs sm:text-sm">Certificate Signatory Authority</h4>
                       </div>
 
                       <div className="space-y-2">
@@ -1181,15 +1135,16 @@ const Workshops: React.FC = () => {
 
                 {/* Certificate Design Tab - Colors and Live Preview side by side */}
                 <TabsContent value="certificate" className="mt-4">
-                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
                     {/* Left Side - Color Controls */}
-                    <div className="space-y-4">
-                      <div className="flex items-center justify-between">
-                        <h3 className="font-semibold text-lg">Certificate Colors</h3>
+                    <div className="space-y-3 sm:space-y-4 order-2 lg:order-1">
+                      <div className="flex items-center justify-between gap-2">
+                        <h3 className="font-semibold text-base sm:text-lg">Certificate Colors</h3>
                         <Button
                           type="button"
                           variant="outline"
                           size="sm"
+                          className="text-xs sm:text-sm h-8 px-2 sm:px-3"
                           onClick={() =>
                             setFormData({
                               ...formData,
@@ -1201,8 +1156,8 @@ const Workshops: React.FC = () => {
                         </Button>
                       </div>
 
-                      <div className="space-y-4">
-                        <ColorPicker
+                      <div className="space-y-3 sm:space-y-4 max-h-[300px] sm:max-h-none overflow-y-auto sm:overflow-visible pr-1 sm:pr-0">
+                        <AdvancedColorPicker
                           label="Background Color"
                           value={formData.background_color}
                           onChange={(value) =>
@@ -1211,7 +1166,7 @@ const Workshops: React.FC = () => {
                           description="Overall certificate background"
                         />
 
-                        <ColorPicker
+                        <AdvancedColorPicker
                           label="Border Color"
                           value={formData.border_color}
                           onChange={(value) =>
@@ -1220,7 +1175,16 @@ const Workshops: React.FC = () => {
                           description="Wavy border decoration"
                         />
 
-                        <ColorPicker
+                        <AdvancedColorPicker
+                          label="Center Card Background"
+                          value={formData.center_background_color || "#ffffff"}
+                          onChange={(value) =>
+                            setFormData({ ...formData, center_background_color: value })
+                          }
+                          description="Inner certificate card background"
+                        />
+
+                        <AdvancedColorPicker
                           label="Title Color"
                           value={formData.title_color}
                           onChange={(value) =>
@@ -1229,7 +1193,7 @@ const Workshops: React.FC = () => {
                           description="'CERTIFICATE Of PARTICIPATION' text"
                         />
 
-                        <ColorPicker
+                        <AdvancedColorPicker
                           label="Name Color"
                           value={formData.name_color}
                           onChange={(value) =>
@@ -1238,7 +1202,7 @@ const Workshops: React.FC = () => {
                           description="Participant name and decorative lines"
                         />
 
-                        <ColorPicker
+                        <AdvancedColorPicker
                           label="Text Color"
                           value={formData.text_color}
                           onChange={(value) =>
@@ -1250,14 +1214,20 @@ const Workshops: React.FC = () => {
                     </div>
 
                     {/* Right Side - Live Preview */}
-                    <div className="space-y-2">
-                      <h3 className="font-semibold text-lg flex items-center gap-2">
+                    <div className="space-y-2 order-1 lg:order-2">
+                      <h3 className="font-semibold text-base sm:text-lg flex items-center gap-2">
                         <Eye className="h-4 w-4" />
                         Live Preview
                       </h3>
-                      <div className="border rounded-lg p-2 bg-gray-50 overflow-hidden" style={{ maxHeight: "420px" }}>
-                        <div className="flex justify-center">
-                          <div style={{ transform: "scale(0.28)", transformOrigin: "top center", marginBottom: "-760px" }}>
+                      <div className="border rounded-lg p-2 bg-gray-50 dark:bg-gray-900 overflow-auto touch-pan-x touch-pan-y" style={{ maxHeight: "280px" }}>
+                        <div className="flex justify-start sm:justify-center min-w-max">
+                          <div style={{ transform: "scale(0.22)", transformOrigin: "top left" }} className="sm:!scale-[0.28] sm:!origin-top-center">
+                            <style>{`
+                              @media (min-width: 640px) {
+                                .sm\\:\\!scale-\\[0\\.28\\] { transform: scale(0.28) !important; }
+                                .sm\\:\\!origin-top-center { transform-origin: top center !important; }
+                              }
+                            `}</style>
                             <WorkshopTemplate
                               workshop={getPreviewWorkshop()}
                               participantName="[PARTICIPANT NAME]"
@@ -1266,7 +1236,7 @@ const Workshops: React.FC = () => {
                         </div>
                       </div>
                       <p className="text-xs text-muted-foreground text-center">
-                        Changes are reflected instantly
+                        {window.innerWidth < 640 ? 'Scroll to view full preview • ' : ''}Changes are reflected instantly
                       </p>
                     </div>
                   </div>
@@ -1274,15 +1244,16 @@ const Workshops: React.FC = () => {
               </Tabs>
 
               {/* Form Actions */}
-              <div className="flex justify-end gap-3 mt-6 pt-4 border-t">
+              <div className="flex flex-col-reverse sm:flex-row justify-end gap-2 sm:gap-3 mt-4 sm:mt-6 pt-4 border-t">
                 <Button
                   type="button"
                   variant="outline"
                   onClick={() => setIsDialogOpen(false)}
+                  className="w-full sm:w-auto"
                 >
                   Cancel
                 </Button>
-                <Button type="submit">
+                <Button type="submit" className="w-full sm:w-auto">
                   {editingWorkshop ? "Update Workshop" : "Create Workshop"}
                 </Button>
               </div>
@@ -1432,31 +1403,35 @@ const Workshops: React.FC = () => {
           open={isPreviewDialogOpen}
           onOpenChange={setIsPreviewDialogOpen}
         >
-          <DialogContent className="max-w-[95vw] w-fit max-h-[95vh] overflow-hidden p-6">
+          <DialogContent className="max-w-[98vw] sm:max-w-[95vw] w-full sm:w-fit max-h-[98vh] sm:max-h-[95vh] overflow-hidden p-3 sm:p-6">
             <DialogHeader className="pb-2">
-              <DialogTitle>Certificate Preview - {previewWorkshop?.name}</DialogTitle>
-              <DialogDescription>
-                Preview of the workshop certificate template. Click download to save as image.
+              <DialogTitle className="text-base sm:text-lg">Certificate Preview - {previewWorkshop?.name}</DialogTitle>
+              <DialogDescription className="text-xs sm:text-sm">
+                Preview of the workshop certificate template. Scroll horizontally to view full certificate on mobile.
               </DialogDescription>
             </DialogHeader>
             {previewWorkshop && (
               <div className="flex flex-col items-center">
-                {/* Scaled certificate preview container - fits in viewport */}
+                {/* Mobile-responsive certificate preview container */}
                 <div
-                  className="border rounded-lg bg-gray-50 p-3 overflow-hidden"
+                  className="border rounded-lg bg-gray-50 dark:bg-gray-900 p-2 sm:p-3 overflow-auto touch-pan-x touch-pan-y"
                   style={{
-                    width: 'min(calc(95vw - 48px), 920px)',
-                    height: 'min(calc(95vh - 140px), 700px)',
+                    width: 'min(calc(98vw - 24px), 920px)',
+                    maxHeight: 'min(calc(98vh - 160px), 700px)',
                   }}
                 >
+                  {/* Mobile: smaller scale, scrollable. Desktop: larger scale */}
                   <div
-                    className="flex justify-center"
+                    className="flex justify-start sm:justify-center min-w-max"
                     style={{
-                      transform: 'scale(0.55)',
-                      transformOrigin: 'top center',
-                      marginBottom: '-500px',
+                      transform: 'scale(var(--cert-scale, 0.35))',
+                      transformOrigin: 'top left',
                     }}
                   >
+                    <style>{`
+                      @media (min-width: 640px) { :root { --cert-scale: 0.55; } }
+                      @media (max-width: 639px) { :root { --cert-scale: 0.35; } }
+                    `}</style>
                     <WorkshopTemplate
                       workshop={previewWorkshop}
                       participantName="[PARTICIPANT NAME]"
@@ -1464,8 +1439,8 @@ const Workshops: React.FC = () => {
                     />
                   </div>
                 </div>
-                <p className="text-xs text-muted-foreground text-center mt-2">
-                  Full resolution will be used when downloading
+                <p className="text-xs text-muted-foreground text-center mt-2 px-2">
+                  {window.innerWidth < 640 ? 'Scroll to view full certificate • ' : ''}Full resolution will be used when downloading
                 </p>
               </div>
             )}

@@ -220,6 +220,7 @@ export interface Workshop {
   logo_url?: string | null;
   // Certificate customization colors
   background_color: string;
+  center_background_color?: string;
   border_color: string;
   title_color: string;
   name_color: string;
@@ -240,6 +241,7 @@ export interface WorkshopFormData {
   chief_trainer_name?: string;
   logo?: File | null;
   background_color: string;
+  center_background_color?: string;
   border_color: string;
   title_color: string;
   name_color: string;

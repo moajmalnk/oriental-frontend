@@ -129,7 +129,6 @@ const App = () => (
                 </ProtectedRoute>
               }
             />
-            
             <Route
               path="/admissions"
               element={

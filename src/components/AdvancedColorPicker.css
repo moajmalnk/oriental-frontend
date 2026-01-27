@@ -1,0 +1,409 @@
+/* Advanced Color Picker Styles */
+
+/* Popover scrollable container */
+[data-radix-popper-content-wrapper] .scrollbar-thin {
+  scrollbar-width: thin;
+  scrollbar-color: hsl(var(--border) / 0.3) transparent;
+}
+
+/* Color Area */
+.color-area {
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.color-area::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.1);
+  pointer-events: none;
+}
+
+/* Color Picker Thumb */
+.color-picker-thumb {
+  transition: transform 0.1s ease-out;
+}
+
+.color-area:active .color-picker-thumb {
+  transform: translate(-50%, -50%) scale(1.3);
+}
+
+/* Hue Slider Container */
+.hue-slider-container {
+  position: relative;
+  padding: 8px 0;
+}
+
+.hue-slider-container::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  height: 14px;
+  border-radius: 7px;
+  background: linear-gradient(to right,
+      hsl(0, 100%, 50%),
+      hsl(60, 100%, 50%),
+      hsl(120, 100%, 50%),
+      hsl(180, 100%, 50%),
+      hsl(240, 100%, 50%),
+      hsl(300, 100%, 50%),
+      hsl(360, 100%, 50%));
+  pointer-events: none;
+}
+
+/* Override Slider Track for Hue */
+.hue-slider [data-orientation="horizontal"] {
+  height: 14px;
+}
+
+.hue-slider [data-orientation="horizontal"]>span:first-child {
+  background: transparent !important;
+  height: 14px;
+  border-radius: 7px;
+}
+
+.hue-slider [data-orientation="horizontal"]>span:first-child>span {
+  background: transparent !important;
+}
+
+/* Hue Slider Thumb */
+.hue-slider [role="slider"] {
+  width: 20px;
+  height: 20px;
+  border: 3px solid white;
+  background: var(--hue-thumb-color, hsl(0, 100%, 50%));
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.2), 0 2px 4px rgba(0, 0, 0, 0.2);
+  transition: transform 0.15s ease-out;
+  touch-action: none;
+}
+
+.hue-slider [role="slider"]:hover {
+  transform: scale(1.1);
+}
+
+.hue-slider [role="slider"]:active {
+  transform: scale(1.2);
+}
+
+/* Alpha Slider */
+.alpha-slider-container {
+  position: relative;
+  padding: 8px 0;
+}
+
+.alpha-slider-container::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  height: 14px;
+  border-radius: 7px;
+  background-image:
+    linear-gradient(45deg, #ccc 25%, transparent 25%),
+    linear-gradient(-45deg, #ccc 25%, transparent 25%),
+    linear-gradient(45deg, transparent 75%, #ccc 75%),
+    linear-gradient(-45deg, transparent 75%, #ccc 75%);
+  background-size: 8px 8px;
+  background-position: 0 0, 0 4px, 4px -4px, -4px 0px;
+  pointer-events: none;
+}
+
+.alpha-slider-container::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  height: 14px;
+  border-radius: 7px;
+  background: var(--alpha-gradient);
+  pointer-events: none;
+}
+
+/* Color Swatch Button */
+.color-swatch-button {
+  position: relative;
+  overflow: hidden;
+  transition: all 0.2s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.color-swatch-button::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(45deg, #ccc 25%, transparent 25%),
+    linear-gradient(-45deg, #ccc 25%, transparent 25%),
+    linear-gradient(45deg, transparent 75%, #ccc 75%),
+    linear-gradient(-45deg, transparent 75%, #ccc 75%);
+  background-size: 6px 6px;
+  background-position: 0 0, 0 3px, 3px -3px, -3px 0px;
+  z-index: -1;
+}
+
+.color-swatch-button::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.1);
+  border-radius: inherit;
+  pointer-events: none;
+}
+
+/* Input Number Styling */
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+  opacity: 1;
+}
+
+/* Animation for copy feedback */
+@keyframes copyPulse {
+  0% {
+    transform: scale(1);
+  }
+
+  50% {
+    transform: scale(1.2);
+  }
+
+  100% {
+    transform: scale(1);
+  }
+}
+
+.copy-success {
+  animation: copyPulse 0.3s ease-out;
+}
+
+/* Smooth transitions for color changes */
+.color-transition {
+  transition: background-color 0.15s ease-out, color 0.15s ease-out;
+}
+
+/* Dark mode adjustments */
+.dark .color-area::before {
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.1);
+}
+
+.dark .hue-slider [role="slider"] {
+  border-color: rgba(255, 255, 255, 0.9);
+}
+
+.dark .color-swatch-button::before {
+  background-image:
+    linear-gradient(45deg, #444 25%, transparent 25%),
+    linear-gradient(-45deg, #444 25%, transparent 25%),
+    linear-gradient(45deg, transparent 75%, #444 75%),
+    linear-gradient(-45deg, transparent 75%, #444 75%);
+}
+
+/* Hover effects for preset buttons */
+.preset-button {
+  position: relative;
+}
+
+.preset-button::after {
+  content: "";
+  position: absolute;
+  inset: -2px;
+  border-radius: inherit;
+  border: 2px solid transparent;
+  transition: border-color 0.2s ease;
+  pointer-events: none;
+}
+
+.preset-button:hover::after {
+  border-color: hsl(var(--ring));
+}
+
+/* Focus visible styles */
+.color-area:focus-visible {
+  outline: 2px solid hsl(var(--ring));
+  outline-offset: 2px;
+}
+
+/* ============================================
+   MOBILE-FIRST RESPONSIVE STYLES
+   ============================================ */
+
+/* Extra small devices (phones in portrait) */
+@media (max-width: 360px) {
+  .color-picker-popover {
+    width: calc(100vw - 24px) !important;
+  }
+}
+
+/* Small devices (phones) */
+@media (max-width: 640px) {
+
+  /* Larger touch targets on mobile */
+  .hue-slider [role="slider"] {
+    width: 28px !important;
+    height: 28px !important;
+    border-width: 4px;
+  }
+
+  .color-picker-thumb {
+    width: 28px !important;
+    height: 28px !important;
+    border-width: 3px !important;
+  }
+
+  /* Better spacing for mobile */
+  .hue-slider-container {
+    padding: 12px 0;
+  }
+
+  .hue-slider-container::before {
+    height: 18px;
+    border-radius: 9px;
+  }
+
+  .hue-slider [data-orientation="horizontal"] {
+    height: 18px;
+  }
+
+  .hue-slider [data-orientation="horizontal"]>span:first-child {
+    height: 18px;
+    border-radius: 9px;
+  }
+}
+
+/* Touch device optimizations */
+@media (hover: none) and (pointer: coarse) {
+
+  /* Larger touch targets */
+  .hue-slider [role="slider"] {
+    width: 28px;
+    height: 28px;
+    border-width: 4px;
+  }
+
+  .color-picker-thumb {
+    width: 28px !important;
+    height: 28px !important;
+    border-width: 3px !important;
+  }
+
+  /* Disable hover effects on touch */
+  .hue-slider [role="slider"]:hover {
+    transform: none;
+  }
+
+  /* Active state instead of hover */
+  .hue-slider [role="slider"]:active {
+    transform: scale(1.15);
+  }
+
+  /* Larger preset buttons for touch */
+  .color-preset-btn {
+    min-width: 40px;
+    min-height: 40px;
+  }
+
+  /* Better active states for touch feedback */
+  .color-area:active .color-picker-thumb {
+    transform: translate(-50%, -50%) scale(1.4) !important;
+    transition: transform 0.1s ease-out;
+  }
+}
+
+/* Tablet landscape and larger */
+@media (min-width: 768px) {
+  .hue-slider-container {
+    padding: 6px 0;
+  }
+
+  .hue-slider-container::before {
+    height: 12px;
+    border-radius: 6px;
+  }
+
+  .hue-slider [data-orientation="horizontal"] {
+    height: 12px;
+  }
+
+  .hue-slider [data-orientation="horizontal"]>span:first-child {
+    height: 12px;
+    border-radius: 6px;
+  }
+
+  .hue-slider [role="slider"] {
+    width: 18px;
+    height: 18px;
+  }
+}
+
+/* Reduced motion preference */
+@media (prefers-reduced-motion: reduce) {
+
+  .color-picker-thumb,
+  .hue-slider [role="slider"],
+  .color-transition {
+    transition: none !important;
+  }
+
+  .copy-success {
+    animation: none !important;
+  }
+
+  .hover\\:scale-110:hover,
+  .active\\:scale-95:active {
+    transform: none !important;
+  }
+}
+
+/* High contrast mode */
+@media (prefers-contrast: high) {
+  .color-area::before {
+    box-shadow: inset 0 0 0 2px currentColor;
+  }
+
+  .hue-slider [role="slider"] {
+    border-width: 4px;
+  }
+
+  .color-picker-thumb {
+    border-width: 3px !important;
+  }
+}
+
+/* iOS-specific fixes */
+@supports (-webkit-touch-callout: none) {
+  .color-area {
+    /* Prevent iOS rubber-banding while dragging */
+    overscroll-behavior: contain;
+  }
+
+  /* Fix for iOS input zoom */
+  input[type="number"],
+  input[type="text"] {
+    font-size: 16px !important;
+  }
+
+  @media (min-width: 640px) {
+
+    input[type="number"],
+    input[type="text"] {
+      font-size: inherit !important;
+    }
+  }
+}
+
+/* Landscape phone orientation */
+@media (max-height: 500px) and (orientation: landscape) {
+  .color-area {
+    height: 100px !important;
+  }
+}

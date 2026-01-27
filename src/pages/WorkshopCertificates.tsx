@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import { Layout } from "@/components/Layout";
 import {
   Plus,
@@ -132,6 +132,7 @@ const WorkshopCertificates: React.FC = () => {
   // Form states
   const [formData, setFormData] = useState<ParticipantFormData>(DEFAULT_FORM_DATA);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Certificate generation states
   const [selectedParticipant, setSelectedParticipant] = useState<Participant | null>(null);
@@ -139,6 +140,7 @@ const WorkshopCertificates: React.FC = () => {
 
   // Bulk download states
   const [bulkDownloadWorkshop, setBulkDownloadWorkshop] = useState<Workshop | null>(null);
+  const [bulkDownloadTypeFilter, setBulkDownloadTypeFilter] = useState<string>("all");
   const [bulkDownloadProgress, setBulkDownloadProgress] = useState(0);
   const [bulkDownloadTotal, setBulkDownloadTotal] = useState(0);
   const [isBulkDownloading, setIsBulkDownloading] = useState(false);
@@ -171,6 +173,29 @@ const WorkshopCertificates: React.FC = () => {
   const [activeTab, setActiveTab] = useState("participants");
 
   const { toast } = useToast();
+
+  // Window size state for responsive certificate preview
+  const [windowWidth, setWindowWidth] = useState(
+    typeof window !== "undefined" ? window.innerWidth : 1024
+  );
+
+  // Update window width on resize
+  useEffect(() => {
+    const handleResize = () => setWindowWidth(window.innerWidth);
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  // Calculate responsive certificate scale based on window width
+  const getCertificateScale = useCallback(() => {
+    if (windowWidth < 400) return 0.22;
+    if (windowWidth < 480) return 0.28;
+    if (windowWidth < 640) return 0.35;
+    if (windowWidth < 768) return 0.42;
+    if (windowWidth < 1024) return 0.52;
+    if (windowWidth < 1280) return 0.58;
+    return 0.65;
+  }, [windowWidth]);
 
   // Fetch data
   const fetchData = async () => {
@@ -265,6 +290,16 @@ const WorkshopCertificates: React.FC = () => {
   // Get participants for a specific workshop (for bulk download)
   const getWorkshopParticipants = (workshopId: number): Participant[] => {
     return participants.filter((p) => p.workshops?.includes(workshopId));
+  };
+
+  // Get filtered participants for bulk download (respects type filter)
+  const getFilteredBulkDownloadParticipants = (): Participant[] => {
+    if (!bulkDownloadWorkshop) return [];
+    let filtered = getWorkshopParticipants(bulkDownloadWorkshop.id!);
+    if (bulkDownloadTypeFilter !== "all") {
+      filtered = filtered.filter((p) => p.participant_type === bulkDownloadTypeFilter);
+    }
+    return filtered;
   };
 
   // Selection handlers
@@ -609,6 +644,7 @@ const WorkshopCertificates: React.FC = () => {
     setFormData(DEFAULT_FORM_DATA);
     setErrors({});
     setEditingParticipant(null);
+    setIsSubmitting(false);
   };
 
   // Open dialog for create/edit
@@ -670,7 +706,7 @@ const WorkshopCertificates: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!validateForm()) {
+    if (!validateForm() || isSubmitting) {
       return;
     }
 
@@ -687,6 +723,7 @@ const WorkshopCertificates: React.FC = () => {
     }
 
     // Create new participant (no confirmation needed)
+    setIsSubmitting(true);
     try {
       await participantAPI.createParticipant(payload);
       toast({
@@ -704,13 +741,16 @@ const WorkshopCertificates: React.FC = () => {
           error.response?.data?.message || "Failed to create participant",
         variant: "destructive",
       });
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
   // Perform the actual update after confirmation
   const handleConfirmUpdate = async () => {
-    if (!editingParticipant || !pendingUpdatePayload) return;
+    if (!editingParticipant || !pendingUpdatePayload || isSubmitting) return;
 
+    setIsSubmitting(true);
     try {
       await participantAPI.updateParticipant(editingParticipant.id!, pendingUpdatePayload);
       toast({
@@ -730,6 +770,8 @@ const WorkshopCertificates: React.FC = () => {
           error.response?.data?.message || "Failed to update participant",
         variant: "destructive",
       });
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -876,11 +918,11 @@ const WorkshopCertificates: React.FC = () => {
   const handleBulkDownload = async () => {
     if (!bulkDownloadWorkshop) return;
 
-    const workshopParticipants = getWorkshopParticipants(bulkDownloadWorkshop.id!);
+    const workshopParticipants = getFilteredBulkDownloadParticipants();
     if (workshopParticipants.length === 0) {
       toast({
         title: "No Participants",
-        description: "No participants found for this workshop",
+        description: "No participants found matching your filters",
         variant: "destructive",
       });
       return;
@@ -1040,9 +1082,26 @@ const WorkshopCertificates: React.FC = () => {
             </p>
           </div>
           <div className="flex flex-col sm:flex-row gap-2">
-            <Button variant="outline" onClick={openBulkImportDialog} className="gap-2">
-              <Upload className="h-4 w-4" />
-              <span>Bulk Upload</span>
+            <Button
+              variant="outline"
+              onClick={() => {
+                // Pre-select workshop if one is already filtered
+                if (selectedWorkshopFilter !== "all") {
+                  const workshop = workshops.find(
+                    (w) => w.id?.toString() === selectedWorkshopFilter
+                  );
+                  if (workshop) {
+                    setBulkDownloadWorkshop(workshop);
+                  }
+                } else {
+                  setBulkDownloadWorkshop(null);
+                }
+                setIsBulkDownloadDialogOpen(true);
+              }}
+              className="gap-2"
+            >
+              <Download className="h-4 w-4" />
+              <span>Bulk Download</span>
             </Button>
             <Button onClick={() => openDialog()} className="gap-2">
               <Plus className="h-4 w-4" />
@@ -1268,24 +1327,6 @@ const WorkshopCertificates: React.FC = () => {
                     </Badge>
                   )}
                 </div>
-
-                {/* Bulk Download Button - Only show when a workshop is selected */}
-                {selectedWorkshopFilter !== "all" && filteredParticipants.length > 0 && (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => {
-                      const workshop = workshops.find(
-                        (w) => w.id?.toString() === selectedWorkshopFilter
-                      );
-                      if (workshop) openBulkDownloadDialog(workshop);
-                    }}
-                    className="gap-2"
-                  >
-                    <Download className="h-4 w-4" />
-                    Download All Certificates ({filteredParticipants.length})
-                  </Button>
-                )}
               </div>
 
               {/* Selection Controls - Only show when a workshop is selected */}
@@ -1475,7 +1516,7 @@ const WorkshopCertificates: React.FC = () => {
                         variant="outline"
                         size="sm"
                         onClick={() => openDeleteDialog(participant)}
-                        className="gap-1 text-red-600 hover:text-red-700 hover:bg-red-50"
+                        className="gap-1 text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 hover:bg-red-50 dark:hover:bg-red-950"
                       >
                         <Trash2 className="h-4 w-4" />
                         <span className="hidden sm:inline">Delete</span>
@@ -1490,20 +1531,22 @@ const WorkshopCertificates: React.FC = () => {
 
         {/* Pagination Controls */}
         {filteredParticipants.length > 0 && totalPages > 1 && (
-          <div className="flex items-center justify-between">
-            <div className="text-sm text-muted-foreground">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
+            <div className="text-xs sm:text-sm text-muted-foreground text-center sm:text-left">
               Showing {startIndex + 1} to{" "}
               {Math.min(endIndex, filteredParticipants.length)} of{" "}
               {filteredParticipants.length} participants
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1 sm:gap-2">
               <Button
                 variant="outline"
                 size="sm"
                 onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
                 disabled={currentPage === 1}
+                className="h-8 px-2 sm:px-3 text-xs sm:text-sm"
               >
-                Previous
+                <span className="hidden sm:inline">Previous</span>
+                <span className="sm:hidden">Prev</span>
               </Button>
 
               <div className="flex items-center gap-1">
@@ -1520,7 +1563,7 @@ const WorkshopCertificates: React.FC = () => {
                           variant={currentPage === page ? "default" : "outline"}
                           size="sm"
                           onClick={() => setCurrentPage(page)}
-                          className="w-8 h-8 p-0"
+                          className="w-7 h-7 sm:w-8 sm:h-8 p-0 text-xs sm:text-sm"
                         >
                           {page}
                         </Button>
@@ -1530,7 +1573,7 @@ const WorkshopCertificates: React.FC = () => {
                       page === currentPage + 2
                     ) {
                       return (
-                        <span key={page} className="text-muted-foreground">
+                        <span key={page} className="text-muted-foreground text-xs">
                           ...
                         </span>
                       );
@@ -1545,6 +1588,7 @@ const WorkshopCertificates: React.FC = () => {
                 size="sm"
                 onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
                 disabled={currentPage === totalPages}
+                className="h-8 px-2 sm:px-3 text-xs sm:text-sm"
               >
                 Next
               </Button>
@@ -1586,469 +1630,654 @@ const WorkshopCertificates: React.FC = () => {
         )}
 
         {/* Participant Form Dialog */}
-        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+        <Dialog open={isDialogOpen} onOpenChange={(open) => {
+          if (!open && !isProcessingBulkImport) {
+            setIsDialogOpen(false);
+            resetBulkImportState();
+          } else if (open) {
+            setIsDialogOpen(true);
+          }
+        }}>
+          <DialogContent className={editingParticipant ? "max-w-2xl max-h-[90vh] overflow-y-auto" : "max-w-5xl max-h-[90vh] overflow-y-auto"}>
             <DialogHeader>
               <DialogTitle>
-                {editingParticipant ? "Edit Participant" : "Add New Participant"}
+                {editingParticipant ? "Edit Participant" : "Add Participant"}
               </DialogTitle>
               <DialogDescription>
                 {editingParticipant
                   ? "Update participant details"
-                  : "Add a new workshop participant"}
+                  : "Add participants manually or upload in bulk via Excel file"}
               </DialogDescription>
             </DialogHeader>
 
-            <form onSubmit={handleSubmit} className="space-y-6">
-              {/* Basic Info */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="name">Full Name *</Label>
-                  <Input
-                    id="name"
-                    value={formData.name}
-                    onChange={(e) =>
-                      setFormData({ ...formData, name: e.target.value })
-                    }
-                    placeholder="Enter full name"
-                  />
-                  {errors.name && (
-                    <p className="text-sm text-destructive">{errors.name}</p>
-                  )}
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="email">Email *</Label>
-                  <Input
-                    id="email"
-                    type="email"
-                    value={formData.email}
-                    onChange={(e) =>
-                      setFormData({ ...formData, email: e.target.value })
-                    }
-                    placeholder="Enter email address"
-                  />
-                  {errors.email && (
-                    <p className="text-sm text-destructive">{errors.email}</p>
-                  )}
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="phone">Phone *</Label>
-                  <Input
-                    id="phone"
-                    value={formData.phone}
-                    onChange={(e) =>
-                      setFormData({ ...formData, phone: e.target.value })
-                    }
-                    placeholder="Enter phone number"
-                  />
-                  {errors.phone && (
-                    <p className="text-sm text-destructive">{errors.phone}</p>
-                  )}
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="gender">Gender *</Label>
-                  <Select
-                    value={formData.gender}
-                    onValueChange={(value: "male" | "female" | "other") =>
-                      setFormData({ ...formData, gender: value })
-                    }
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select gender" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="male">Male</SelectItem>
-                      <SelectItem value="female">Female</SelectItem>
-                      <SelectItem value="other">Other</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  {errors.gender && (
-                    <p className="text-sm text-destructive">{errors.gender}</p>
-                  )}
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="participant_type">Participant Type *</Label>
-                  <Select
-                    value={formData.participant_type}
-                    onValueChange={(value: "kug_student" | "external") =>
-                      setFormData({ ...formData, participant_type: value })
-                    }
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select type" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="kug_student">KUG Student</SelectItem>
-                      <SelectItem value="external">External Participant</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  {errors.participant_type && (
-                    <p className="text-sm text-destructive">
-                      {errors.participant_type}
-                    </p>
-                  )}
-                </div>
-
-                <div className="space-y-2 md:col-span-2">
-                  <Label htmlFor="address">Address (Optional)</Label>
-                  <Textarea
-                    id="address"
-                    value={formData.address || ""}
-                    onChange={(e) =>
-                      setFormData({ ...formData, address: e.target.value })
-                    }
-                    placeholder="Enter address"
-                    rows={2}
-                  />
-                </div>
-              </div>
-
-              {/* Workshop Selection */}
-              <div className="space-y-3">
-                <Label>Participated Workshops</Label>
-                <p className="text-xs text-muted-foreground">
-                  Select the workshops this participant has attended
-                </p>
-                <div className="border rounded-lg p-4 max-h-60 overflow-y-auto space-y-3">
-                  {workshops.length === 0 ? (
-                    <p className="text-sm text-muted-foreground text-center py-4">
-                      No workshops available. Create workshops first.
-                    </p>
-                  ) : (
-                    workshops.map((workshop) => (
-                      <div
-                        key={workshop.id}
-                        className="flex items-start space-x-3 p-2 hover:bg-muted/50 rounded-lg"
-                      >
-                        <Checkbox
-                          id={`workshop-${workshop.id}`}
-                          checked={formData.workshops.includes(workshop.id!)}
-                          onCheckedChange={() => handleWorkshopToggle(workshop.id!)}
-                        />
-                        <div className="flex-1">
-                          <label
-                            htmlFor={`workshop-${workshop.id}`}
-                            className="text-sm font-medium cursor-pointer"
-                          >
-                            {workshop.name}
-                          </label>
-                          <p className="text-xs text-muted-foreground">
-                            {formatDate(workshop.start_date)} • {workshop.place}
-                          </p>
-                        </div>
-                      </div>
-                    ))
-                  )}
-                </div>
-                {formData.workshops.length > 0 && (
-                  <p className="text-xs text-muted-foreground">
-                    {formData.workshops.length} workshop(s) selected
-                  </p>
-                )}
-              </div>
-
-              {/* Form Actions */}
-              <div className="flex justify-end gap-3 pt-4 border-t">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => setIsDialogOpen(false)}
-                >
-                  Cancel
-                </Button>
-                <Button type="submit">
-                  {editingParticipant ? "Update Participant" : "Add Participant"}
-                </Button>
-              </div>
-            </form>
-          </DialogContent>
-        </Dialog>
-
-        {/* Bulk Import Dialog */}
-        <Dialog
-          open={isBulkImportDialogOpen}
-          onOpenChange={(open) => {
-            if (!isProcessingBulkImport) {
-              setIsBulkImportDialogOpen(open);
-              if (!open) resetBulkImportState();
-            }
-          }}
-        >
-          <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle className="flex items-center gap-2">
-                <FileSpreadsheet className="h-5 w-5 text-primary" />
-                Bulk Upload Participants
-              </DialogTitle>
-              <DialogDescription>
-                Upload an Excel (.xlsx/.xls) file to add multiple participants
-                to a workshop. Use the template to match the required columns.
-              </DialogDescription>
-            </DialogHeader>
-
-            <div className="space-y-5">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label>Target Workshop</Label>
-                  <Select
-                    value={bulkWorkshopId ?? "none"}
-                    onValueChange={(value) =>
-                      setBulkWorkshopId(value === "none" ? null : value)
-                    }
-                  >
-                    <SelectTrigger className={!bulkWorkshopId ? "border-destructive" : ""}>
-                      <SelectValue placeholder="Choose workshop" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="none">Select workshop</SelectItem>
-                      {workshops.map((workshop) => (
-                        <SelectItem key={workshop.id} value={workshop.id!.toString()}>
-                          {workshop.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <p className="text-xs text-muted-foreground">
-                    Defaults to your active workshop filter when opening this dialog.
-                  </p>
-                  {!bulkWorkshopId && (
-                    <div className="text-xs text-destructive flex items-center gap-2">
-                      <AlertCircle className="h-4 w-4" />
-                      Please select a workshop before importing.
-                    </div>
-                  )}
-                </div>
-                <div className="flex flex-wrap gap-2 justify-start md:justify-end">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setIsTemplateConfirmOpen(true)}
-                    className="gap-2"
-                  >
-                    <Download className="h-4 w-4" />
-                    Excel template
-                  </Button>
-                </div>
-              </div>
-
-              <div className="border rounded-lg p-4 space-y-3">
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-                  <div>
-                    <p className="font-medium">Upload Excel/CSV</p>
-                    <p className="text-xs text-muted-foreground">
-                      Required columns: Full Name, Email, Phone, Gender, Participant Type
-                      (KUG Student or External Participant). Address is optional. Drag &
-                      drop your file or browse to upload.
-                    </p>
-                  </div>
-                  {bulkFileName && (
-                    <Badge variant="secondary" className="whitespace-nowrap">
-                      {bulkFileName}
-                    </Badge>
-                  )}
-                </div>
-
-                <div
-                  className={`border-2 border-dashed rounded-lg p-6 transition-colors ${bulkDragActive
-                      ? "border-primary bg-primary/5"
-                      : "border-muted-foreground/25 hover:border-muted-foreground/50"
-                    } ${!bulkWorkshopId ? "opacity-70 cursor-not-allowed" : ""}`}
-                  onDragEnter={(e) => {
-                    e.preventDefault();
-                    if (!bulkWorkshopId || isProcessingBulkImport) return;
-                    setBulkDragActive(true);
-                  }}
-                  onDragLeave={(e) => {
-                    e.preventDefault();
-                    setBulkDragActive(false);
-                  }}
-                  onDragOver={(e) => e.preventDefault()}
-                  onDrop={(e) => {
-                    e.preventDefault();
-                    if (!bulkWorkshopId || isProcessingBulkImport) return;
-                    setBulkDragActive(false);
-                    const file = e.dataTransfer.files?.[0];
-                    if (file) handleBulkFile(file);
-                  }}
-                >
-                  <div className="flex flex-col items-center text-center gap-2">
-                    <Upload className="h-8 w-8 text-muted-foreground" />
-                    <p className="font-medium">Drag & drop Excel file here</p>
-                    <p className="text-sm text-muted-foreground">
-                      Supported: .xlsx, .xls (use the template for correct columns).
-                    </p>
-                    <div className="flex items-center gap-2 mt-2">
-                      <Input
-                        type="file"
-                        accept=".xlsx,.xls"
-                        onChange={(e) => {
-                          const file = e.target.files?.[0];
-                          if (file) handleBulkFile(file);
-                          e.target.value = "";
-                        }}
-                        disabled={isProcessingBulkImport || !bulkWorkshopId}
-                        className="hidden"
-                        id="bulk-import-file"
-                      />
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => document.getElementById("bulk-import-file")?.click()}
-                        disabled={isProcessingBulkImport || !bulkWorkshopId}
-                      >
-                        Browse file
-                      </Button>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {bulkValidations.length > 0 && (
-                <div className="space-y-3">
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <Badge variant="outline" className="whitespace-nowrap">
-                      {bulkValidations.filter((v) => v.errors.length === 0).length} valid
-                    </Badge>
-                    <Badge variant="destructive" className="whitespace-nowrap">
-                      {bulkValidations.filter((v) => v.errors.length > 0).length} invalid
-                    </Badge>
-                    {isProcessingBulkImport && (
-                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                        <Loader2 className="h-4 w-4 animate-spin" />
-                        {bulkImportProgress}/{bulkImportTotal || bulkValidations.length}
-                      </div>
+            {editingParticipant ? (
+              <form onSubmit={handleSubmit} className="space-y-6">
+                {/* Basic Info */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="name">Full Name *</Label>
+                    <Input
+                      id="name"
+                      value={formData.name}
+                      onChange={(e) =>
+                        setFormData({ ...formData, name: e.target.value })
+                      }
+                      placeholder="Enter full name"
+                    />
+                    {errors.name && (
+                      <p className="text-sm text-destructive">{errors.name}</p>
                     )}
                   </div>
 
-                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-3 border rounded-lg bg-muted/50">
-                    <div>
-                      <p className="font-medium">Missing someone?</p>
-                      <p className="text-xs text-muted-foreground">
-                        If a participant isn’t in the file or needs special handling, add them
-                        manually with the selected workshop prefilled.
-                      </p>
-                    </div>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={handleManualAddFromBulk}
-                      className="whitespace-nowrap"
+                  <div className="space-y-2">
+                    <Label htmlFor="email">Email *</Label>
+                    <Input
+                      id="email"
+                      type="email"
+                      value={formData.email}
+                      onChange={(e) =>
+                        setFormData({ ...formData, email: e.target.value })
+                      }
+                      placeholder="Enter email address"
+                    />
+                    {errors.email && (
+                      <p className="text-sm text-destructive">{errors.email}</p>
+                    )}
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="phone">Phone *</Label>
+                    <Input
+                      id="phone"
+                      value={formData.phone}
+                      onChange={(e) =>
+                        setFormData({ ...formData, phone: e.target.value })
+                      }
+                      placeholder="Enter phone number"
+                    />
+                    {errors.phone && (
+                      <p className="text-sm text-destructive">{errors.phone}</p>
+                    )}
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="gender">Gender *</Label>
+                    <Select
+                      value={formData.gender}
+                      onValueChange={(value: "male" | "female" | "other") =>
+                        setFormData({ ...formData, gender: value })
+                      }
                     >
-                      Add manually
-                    </Button>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select gender" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="male">Male</SelectItem>
+                        <SelectItem value="female">Female</SelectItem>
+                        <SelectItem value="other">Other</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    {errors.gender && (
+                      <p className="text-sm text-destructive">{errors.gender}</p>
+                    )}
                   </div>
 
-                  <div className="border rounded-lg max-h-64 overflow-auto">
-                    <table className="w-full text-sm">
-                      <thead className="bg-muted/50 sticky top-0">
-                        <tr>
-                          <th className="p-2 text-left font-medium">Row</th>
-                          <th className="p-2 text-left font-medium">Name</th>
-                          <th className="p-2 text-left font-medium">Email</th>
-                          <th className="p-2 text-left font-medium">Phone</th>
-                          <th className="p-2 text-left font-medium">Type</th>
-                          <th className="p-2 text-left font-medium">Status</th>
-                          <th className="p-2 text-left font-medium">Actions</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {bulkValidations.map((validation, index) => (
-                          <tr key={`${validation.data.email}-${index}`} className="border-t">
-                            <td className="p-2">{validation.row}</td>
-                            <td className="p-2">{validation.data.name}</td>
-                            <td className="p-2">{validation.data.email}</td>
-                            <td className="p-2">{validation.data.phone}</td>
-                            <td className="p-2 capitalize">
-                              {validation.data.participant_type === "kug_student"
-                                ? "KUG Student"
-                                : "External"}
-                            </td>
-                            <td className="p-2">
-                              {validation.errors.length === 0 ? (
-                                <div className="flex items-center gap-1 text-green-600">
-                                  <CheckCircle className="h-4 w-4" />
-                                  <span>Valid</span>
-                                </div>
-                              ) : (
-                                <div className="space-y-1 text-red-600 text-xs">
-                                  <div className="flex items-center gap-1">
-                                    <AlertCircle className="h-4 w-4" />
-                                    <span>Needs fixes</span>
-                                  </div>
-                                  <ul className="list-disc list-inside">
-                                    {validation.errors.map((error, i) => (
-                                      <li key={i}>{error}</li>
-                                    ))}
-                                  </ul>
-                                </div>
-                              )}
-                            </td>
-                            <td className="p-2">
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => {
-                                  setEditingBulkIndex(index);
-                                  setEditingBulkData(validation.data);
-                                }}
-                                className="h-7 px-2"
-                              >
-                                Edit
-                              </Button>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
+                  <div className="space-y-2">
+                    <Label htmlFor="participant_type">Participant Type *</Label>
+                    <Select
+                      value={formData.participant_type}
+                      onValueChange={(value: "kug_student" | "external") =>
+                        setFormData({ ...formData, participant_type: value })
+                      }
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select type" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="kug_student">KUG Student</SelectItem>
+                        <SelectItem value="external">External Participant</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    {errors.participant_type && (
+                      <p className="text-sm text-destructive">
+                        {errors.participant_type}
+                      </p>
+                    )}
+                  </div>
+
+                  <div className="space-y-2 md:col-span-2">
+                    <Label htmlFor="address">Address (Optional)</Label>
+                    <Textarea
+                      id="address"
+                      value={formData.address || ""}
+                      onChange={(e) =>
+                        setFormData({ ...formData, address: e.target.value })
+                      }
+                      placeholder="Enter address"
+                      rows={2}
+                    />
                   </div>
                 </div>
-              )}
 
-              {bulkImportErrors.length > 0 && (
-                <div className="bg-red-50 border border-red-200 text-red-700 rounded-lg p-3 space-y-2">
-                  <div className="flex items-center gap-2 font-medium">
-                    <AlertCircle className="h-4 w-4" />
-                    Issues found while importing
+                {/* Workshop Selection */}
+                <div className="space-y-3">
+                  <Label>Participated Workshops</Label>
+                  <p className="text-xs text-muted-foreground">
+                    Select the workshops this participant has attended
+                  </p>
+                  <div className="border rounded-lg p-4 max-h-60 overflow-y-auto space-y-3">
+                    {workshops.length === 0 ? (
+                      <p className="text-sm text-muted-foreground text-center py-4">
+                        No workshops available. Create workshops first.
+                      </p>
+                    ) : (
+                      workshops.map((workshop) => (
+                        <div
+                          key={workshop.id}
+                          className="flex items-start space-x-3 p-2 hover:bg-muted/50 rounded-lg"
+                        >
+                          <Checkbox
+                            id={`workshop-${workshop.id}`}
+                            checked={formData.workshops.includes(workshop.id!)}
+                            onCheckedChange={() => handleWorkshopToggle(workshop.id!)}
+                          />
+                          <div className="flex-1">
+                            <label
+                              htmlFor={`workshop-${workshop.id}`}
+                              className="text-sm font-medium cursor-pointer"
+                            >
+                              {workshop.name}
+                            </label>
+                            <p className="text-xs text-muted-foreground">
+                              {formatDate(workshop.start_date)} • {workshop.place}
+                            </p>
+                          </div>
+                        </div>
+                      ))
+                    )}
                   </div>
-                  <ul className="list-disc list-inside text-sm">
-                    {bulkImportErrors.map((error, idx) => (
-                      <li key={idx}>{error}</li>
-                    ))}
-                  </ul>
+                  {formData.workshops.length > 0 && (
+                    <p className="text-xs text-muted-foreground">
+                      {formData.workshops.length} workshop(s) selected
+                    </p>
+                  )}
                 </div>
-              )}
 
-              <div className="flex justify-end gap-2 pt-2">
-                <Button
-                  variant="outline"
-                  onClick={() => {
-                    if (!isProcessingBulkImport) {
-                      setIsBulkImportDialogOpen(false);
-                      resetBulkImportState();
-                    }
-                  }}
-                  disabled={isProcessingBulkImport}
-                >
-                  Cancel
-                </Button>
-                <Button
-                  onClick={() => setIsConfirmBulkImportOpen(true)}
-                  disabled={
-                    isProcessingBulkImport ||
-                    !bulkWorkshopId ||
-                    bulkValidations.filter((v) => v.errors.length === 0).length === 0
-                  }
-                  className="gap-2"
-                >
-                  <Upload className="h-4 w-4" />
-                  Review & Import
-                </Button>
-              </div>
-            </div>
+                {/* Form Actions */}
+                <div className="flex justify-end gap-3 pt-4 border-t">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => setIsDialogOpen(false)}
+                  >
+                    Cancel
+                  </Button>
+                  <Button type="submit" disabled={isSubmitting}>
+                    {isSubmitting ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        {editingParticipant ? "Updating..." : "Adding..."}
+                      </>
+                    ) : (
+                      editingParticipant ? "Update Participant" : "Add Participant"
+                    )}
+                  </Button>
+                </div>
+              </form>
+            ) : (
+              <Tabs defaultValue="manual" className="w-full">
+                <TabsList className="grid w-full grid-cols-2">
+                  <TabsTrigger value="manual" className="gap-2">
+                    <User className="h-4 w-4" />
+                    Manual Entry
+                  </TabsTrigger>
+                  <TabsTrigger value="bulk" className="gap-2">
+                    <Upload className="h-4 w-4" />
+                    Bulk Upload
+                  </TabsTrigger>
+                </TabsList>
+
+                {/* Manual Entry Tab */}
+                <TabsContent value="manual" className="mt-4">
+                  <form onSubmit={handleSubmit} className="space-y-6">
+                    {/* Basic Info */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="name">Full Name *</Label>
+                        <Input
+                          id="name"
+                          value={formData.name}
+                          onChange={(e) =>
+                            setFormData({ ...formData, name: e.target.value })
+                          }
+                          placeholder="Enter full name"
+                        />
+                        {errors.name && (
+                          <p className="text-sm text-destructive">{errors.name}</p>
+                        )}
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="email">Email *</Label>
+                        <Input
+                          id="email"
+                          type="email"
+                          value={formData.email}
+                          onChange={(e) =>
+                            setFormData({ ...formData, email: e.target.value })
+                          }
+                          placeholder="Enter email address"
+                        />
+                        {errors.email && (
+                          <p className="text-sm text-destructive">{errors.email}</p>
+                        )}
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="phone">Phone *</Label>
+                        <Input
+                          id="phone"
+                          value={formData.phone}
+                          onChange={(e) =>
+                            setFormData({ ...formData, phone: e.target.value })
+                          }
+                          placeholder="Enter phone number"
+                        />
+                        {errors.phone && (
+                          <p className="text-sm text-destructive">{errors.phone}</p>
+                        )}
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="gender">Gender *</Label>
+                        <Select
+                          value={formData.gender}
+                          onValueChange={(value: "male" | "female" | "other") =>
+                            setFormData({ ...formData, gender: value })
+                          }
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select gender" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="male">Male</SelectItem>
+                            <SelectItem value="female">Female</SelectItem>
+                            <SelectItem value="other">Other</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        {errors.gender && (
+                          <p className="text-sm text-destructive">{errors.gender}</p>
+                        )}
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="participant_type">Participant Type *</Label>
+                        <Select
+                          value={formData.participant_type}
+                          onValueChange={(value: "kug_student" | "external") =>
+                            setFormData({ ...formData, participant_type: value })
+                          }
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select type" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="kug_student">KUG Student</SelectItem>
+                            <SelectItem value="external">External Participant</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        {errors.participant_type && (
+                          <p className="text-sm text-destructive">
+                            {errors.participant_type}
+                          </p>
+                        )}
+                      </div>
+
+                      <div className="space-y-2 md:col-span-2">
+                        <Label htmlFor="address">Address (Optional)</Label>
+                        <Textarea
+                          id="address"
+                          value={formData.address || ""}
+                          onChange={(e) =>
+                            setFormData({ ...formData, address: e.target.value })
+                          }
+                          placeholder="Enter address"
+                          rows={2}
+                        />
+                      </div>
+                    </div>
+
+                    {/* Workshop Selection */}
+                    <div className="space-y-3">
+                      <Label>Participated Workshops</Label>
+                      <p className="text-xs text-muted-foreground">
+                        Select the workshops this participant has attended
+                      </p>
+                      <div className="border rounded-lg p-4 max-h-60 overflow-y-auto space-y-3">
+                        {workshops.length === 0 ? (
+                          <p className="text-sm text-muted-foreground text-center py-4">
+                            No workshops available. Create workshops first.
+                          </p>
+                        ) : (
+                          workshops.map((workshop) => (
+                            <div
+                              key={workshop.id}
+                              className="flex items-start space-x-3 p-2 hover:bg-muted/50 rounded-lg"
+                            >
+                              <Checkbox
+                                id={`workshop-${workshop.id}`}
+                                checked={formData.workshops.includes(workshop.id!)}
+                                onCheckedChange={() => handleWorkshopToggle(workshop.id!)}
+                              />
+                              <div className="flex-1">
+                                <label
+                                  htmlFor={`workshop-${workshop.id}`}
+                                  className="text-sm font-medium cursor-pointer"
+                                >
+                                  {workshop.name}
+                                </label>
+                                <p className="text-xs text-muted-foreground">
+                                  {formatDate(workshop.start_date)} • {workshop.place}
+                                </p>
+                              </div>
+                            </div>
+                          ))
+                        )}
+                      </div>
+                      {formData.workshops.length > 0 && (
+                        <p className="text-xs text-muted-foreground">
+                          {formData.workshops.length} workshop(s) selected
+                        </p>
+                      )}
+                    </div>
+
+                    {/* Form Actions */}
+                    <div className="flex justify-end gap-3 pt-4 border-t">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => setIsDialogOpen(false)}
+                      >
+                        Cancel
+                      </Button>
+                      <Button type="submit" disabled={isSubmitting}>
+                        {isSubmitting ? (
+                          <>
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            Adding...
+                          </>
+                        ) : (
+                          "Add Participant"
+                        )}
+                      </Button>
+                    </div>
+                  </form>
+                </TabsContent>
+
+                {/* Bulk Upload Tab */}
+                <TabsContent value="bulk" className="mt-4">
+                  <div className="space-y-5">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label>Target Workshop</Label>
+                        <Select
+                          value={bulkWorkshopId ?? "none"}
+                          onValueChange={(value) =>
+                            setBulkWorkshopId(value === "none" ? null : value)
+                          }
+                        >
+                          <SelectTrigger className={!bulkWorkshopId ? "border-destructive" : ""}>
+                            <SelectValue placeholder="Choose workshop" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="none">Select workshop</SelectItem>
+                            {workshops.map((workshop) => (
+                              <SelectItem key={workshop.id} value={workshop.id!.toString()}>
+                                {workshop.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <p className="text-xs text-muted-foreground">
+                          Defaults to your active workshop filter when opening this dialog.
+                        </p>
+                        {!bulkWorkshopId && (
+                          <div className="text-xs text-destructive flex items-center gap-2">
+                            <AlertCircle className="h-4 w-4" />
+                            Please select a workshop before importing.
+                          </div>
+                        )}
+                      </div>
+                      <div className="flex flex-wrap gap-2 justify-start md:justify-end">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setIsTemplateConfirmOpen(true)}
+                          className="gap-2"
+                        >
+                          <Download className="h-4 w-4" />
+                          Excel template
+                        </Button>
+                      </div>
+                    </div>
+
+                    <div className="border rounded-lg p-4 space-y-3">
+                      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                        <div>
+                          <p className="font-medium">Upload Excel/CSV</p>
+                          <p className="text-xs text-muted-foreground">
+                            Required columns: Full Name, Email, Phone, Gender, Participant Type
+                            (KUG Student or External Participant). Address is optional. Drag &
+                            drop your file or browse to upload.
+                          </p>
+                        </div>
+                        {bulkFileName && (
+                          <Badge variant="secondary" className="whitespace-nowrap">
+                            {bulkFileName}
+                          </Badge>
+                        )}
+                      </div>
+
+                      <div
+                        className={`border-2 border-dashed rounded-lg p-6 transition-colors ${bulkDragActive
+                          ? "border-primary bg-primary/5"
+                          : "border-muted-foreground/25 hover:border-muted-foreground/50"
+                          } ${!bulkWorkshopId ? "opacity-70 cursor-not-allowed" : ""}`}
+                        onDragEnter={(e) => {
+                          e.preventDefault();
+                          if (!bulkWorkshopId || isProcessingBulkImport) return;
+                          setBulkDragActive(true);
+                        }}
+                        onDragLeave={(e) => {
+                          e.preventDefault();
+                          setBulkDragActive(false);
+                        }}
+                        onDragOver={(e) => e.preventDefault()}
+                        onDrop={(e) => {
+                          e.preventDefault();
+                          if (!bulkWorkshopId || isProcessingBulkImport) return;
+                          setBulkDragActive(false);
+                          const file = e.dataTransfer.files?.[0];
+                          if (file) handleBulkFile(file);
+                        }}
+                      >
+                        <div className="flex flex-col items-center text-center gap-2">
+                          <Upload className="h-8 w-8 text-muted-foreground" />
+                          <p className="font-medium">Drag & drop Excel file here</p>
+                          <p className="text-sm text-muted-foreground">
+                            Supported: .xlsx, .xls (use the template for correct columns).
+                          </p>
+                          <div className="flex items-center gap-2 mt-2">
+                            <Input
+                              type="file"
+                              accept=".xlsx,.xls"
+                              onChange={(e) => {
+                                const file = e.target.files?.[0];
+                                if (file) handleBulkFile(file);
+                                e.target.value = "";
+                              }}
+                              disabled={isProcessingBulkImport || !bulkWorkshopId}
+                              className="hidden"
+                              id="bulk-import-file-dialog"
+                            />
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => document.getElementById("bulk-import-file-dialog")?.click()}
+                              disabled={isProcessingBulkImport || !bulkWorkshopId}
+                            >
+                              Browse file
+                            </Button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {bulkValidations.length > 0 && (
+                      <div className="space-y-3">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <Badge variant="outline" className="whitespace-nowrap">
+                            {bulkValidations.filter((v) => v.errors.length === 0).length} valid
+                          </Badge>
+                          <Badge variant="destructive" className="whitespace-nowrap">
+                            {bulkValidations.filter((v) => v.errors.length > 0).length} invalid
+                          </Badge>
+                          {isProcessingBulkImport && (
+                            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                              <Loader2 className="h-4 w-4 animate-spin" />
+                              {bulkImportProgress}/{bulkImportTotal || bulkValidations.length}
+                            </div>
+                          )}
+                        </div>
+
+                        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-3 border rounded-lg bg-muted/50">
+                          <div>
+                            <p className="font-medium">Missing someone?</p>
+                            <p className="text-xs text-muted-foreground">
+                              If a participant isn't in the file or needs special handling, add them
+                              manually with the selected workshop prefilled.
+                            </p>
+                          </div>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={handleManualAddFromBulk}
+                            className="whitespace-nowrap"
+                          >
+                            Add manually
+                          </Button>
+                        </div>
+
+                        <div className="border rounded-lg max-h-64 overflow-auto">
+                          <table className="w-full text-sm">
+                            <thead className="bg-muted/50 sticky top-0">
+                              <tr>
+                                <th className="p-2 text-left font-medium">Row</th>
+                                <th className="p-2 text-left font-medium">Name</th>
+                                <th className="p-2 text-left font-medium">Email</th>
+                                <th className="p-2 text-left font-medium">Phone</th>
+                                <th className="p-2 text-left font-medium">Type</th>
+                                <th className="p-2 text-left font-medium">Status</th>
+                                <th className="p-2 text-left font-medium">Actions</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {bulkValidations.map((validation, index) => (
+                                <tr key={`${validation.data.email}-${index}`} className="border-t">
+                                  <td className="p-2">{validation.row}</td>
+                                  <td className="p-2">{validation.data.name}</td>
+                                  <td className="p-2">{validation.data.email}</td>
+                                  <td className="p-2">{validation.data.phone}</td>
+                                  <td className="p-2 capitalize">
+                                    {validation.data.participant_type === "kug_student"
+                                      ? "KUG Student"
+                                      : "External"}
+                                  </td>
+                                  <td className="p-2">
+                                    {validation.errors.length === 0 ? (
+                                      <div className="flex items-center gap-1 text-green-600 dark:text-green-400">
+                                        <CheckCircle className="h-4 w-4" />
+                                        <span>Valid</span>
+                                      </div>
+                                    ) : (
+                                      <div className="space-y-1 text-red-600 dark:text-red-400 text-xs">
+                                        <div className="flex items-center gap-1">
+                                          <AlertCircle className="h-4 w-4" />
+                                          <span>Needs fixes</span>
+                                        </div>
+                                        <ul className="list-disc list-inside">
+                                          {validation.errors.map((error, i) => (
+                                            <li key={i}>{error}</li>
+                                          ))}
+                                        </ul>
+                                      </div>
+                                    )}
+                                  </td>
+                                  <td className="p-2">
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      onClick={() => {
+                                        setEditingBulkIndex(index);
+                                        setEditingBulkData(validation.data);
+                                      }}
+                                      className="h-7 px-2"
+                                    >
+                                      Edit
+                                    </Button>
+                                  </td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+                      </div>
+                    )}
+
+                    {bulkImportErrors.length > 0 && (
+                      <div className="bg-red-50 dark:bg-red-950 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-300 rounded-lg p-3 space-y-2">
+                        <div className="flex items-center gap-2 font-medium">
+                          <AlertCircle className="h-4 w-4" />
+                          Issues found while importing
+                        </div>
+                        <ul className="list-disc list-inside text-sm">
+                          {bulkImportErrors.map((error, idx) => (
+                            <li key={idx}>{error}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+
+                    <div className="flex justify-end gap-2 pt-2 border-t">
+                      <Button
+                        variant="outline"
+                        onClick={() => {
+                          if (!isProcessingBulkImport) {
+                            setIsDialogOpen(false);
+                            resetBulkImportState();
+                          }
+                        }}
+                        disabled={isProcessingBulkImport}
+                      >
+                        Cancel
+                      </Button>
+                      <Button
+                        onClick={() => setIsConfirmBulkImportOpen(true)}
+                        disabled={
+                          isProcessingBulkImport ||
+                          !bulkWorkshopId ||
+                          bulkValidations.filter((v) => v.errors.length === 0).length === 0
+                        }
+                        className="gap-2"
+                      >
+                        <Upload className="h-4 w-4" />
+                        Review & Import
+                      </Button>
+                    </div>
+                  </div>
+                </TabsContent>
+              </Tabs>
+            )}
           </DialogContent>
         </Dialog>
 
@@ -2429,14 +2658,22 @@ const WorkshopCertificates: React.FC = () => {
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
-              <AlertDialogCancel onClick={closeUpdateDialog}>
+              <AlertDialogCancel onClick={closeUpdateDialog} disabled={isSubmitting}>
                 Cancel
               </AlertDialogCancel>
               <AlertDialogAction
                 onClick={handleConfirmUpdate}
+                disabled={isSubmitting}
                 className="bg-primary text-primary-foreground hover:bg-primary/90"
               >
-                Confirm Update
+                {isSubmitting ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Updating...
+                  </>
+                ) : (
+                  "Confirm Update"
+                )}
               </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>
@@ -2447,94 +2684,128 @@ const WorkshopCertificates: React.FC = () => {
           open={isCertificateDialogOpen}
           onOpenChange={setIsCertificateDialogOpen}
         >
-          <DialogContent className="max-w-[95vw] w-fit max-h-[95vh] overflow-hidden p-6">
-            <DialogHeader className="pb-2">
-              <DialogTitle>Generate Certificate</DialogTitle>
-              <DialogDescription>
+          <DialogContent
+            className="w-[96vw] max-w-[96vw] sm:max-w-[92vw] md:max-w-[88vw] lg:max-w-[80vw] xl:max-w-[1100px] h-[90vh] sm:h-[88vh] max-h-[90vh] sm:max-h-[88vh] overflow-hidden p-3 sm:p-4 md:p-5 flex flex-col"
+          >
+            <DialogHeader className="pb-2 sm:pb-3 flex-shrink-0">
+              <DialogTitle className="text-base sm:text-lg md:text-xl text-center sm:text-left">
+                Generate Certificate
+              </DialogTitle>
+              <DialogDescription className="text-xs sm:text-sm text-center sm:text-left">
                 Select a workshop to generate the certificate for{" "}
-                <strong>{selectedParticipant?.name}</strong>
+                <strong className="text-foreground">{selectedParticipant?.name}</strong>
               </DialogDescription>
             </DialogHeader>
 
             {selectedParticipant && (
-              <div className="space-y-4">
+              <div className="flex-1 min-h-0 flex flex-col overflow-hidden">
                 {/* Workshop Selection */}
                 {!selectedWorkshopForCert ? (
-                  <div className="space-y-3">
-                    <Label>Select Workshop</Label>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-60 overflow-y-auto">
-                      {getParticipantWorkshops(selectedParticipant).map(
-                        (workshop) => (
-                          <Card
-                            key={workshop.id}
-                            className="cursor-pointer hover:border-primary transition-colors"
-                            onClick={() => setSelectedWorkshopForCert(workshop)}
-                          >
-                            <CardContent className="p-4">
-                              <div className="flex items-center gap-3">
-                                <div
-                                  className="p-2 rounded-lg"
-                                  style={{
-                                    backgroundColor: `${workshop.border_color}20`,
-                                  }}
-                                >
-                                  <Award
-                                    className="h-5 w-5"
-                                    style={{ color: workshop.border_color }}
-                                  />
+                  <div className="flex flex-col gap-3 flex-1 overflow-hidden">
+                    <Label className="text-sm font-medium flex-shrink-0">Select Workshop</Label>
+                    <div className="flex-1 overflow-y-auto pr-1">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3">
+                        {getParticipantWorkshops(selectedParticipant).map(
+                          (workshop) => (
+                            <Card
+                              key={workshop.id}
+                              className="cursor-pointer hover:border-primary hover:bg-accent/50 transition-all duration-200 active:scale-[0.98]"
+                              onClick={() => setSelectedWorkshopForCert(workshop)}
+                            >
+                              <CardContent className="p-3 sm:p-4">
+                                <div className="flex items-center gap-2 sm:gap-3">
+                                  <div
+                                    className="p-1.5 sm:p-2 rounded-lg flex-shrink-0"
+                                    style={{
+                                      backgroundColor: `${workshop.border_color}20`,
+                                    }}
+                                  >
+                                    <Award
+                                      className="h-4 w-4 sm:h-5 sm:w-5"
+                                      style={{ color: workshop.border_color }}
+                                    />
+                                  </div>
+                                  <div className="min-w-0 flex-1">
+                                    <h4 className="font-medium text-sm sm:text-base truncate">{workshop.name}</h4>
+                                    <p className="text-xs text-muted-foreground truncate">
+                                      {formatDate(workshop.start_date)}
+                                    </p>
+                                  </div>
                                 </div>
-                                <div>
-                                  <h4 className="font-medium">{workshop.name}</h4>
-                                  <p className="text-xs text-muted-foreground">
-                                    {formatDate(workshop.start_date)}
-                                  </p>
-                                </div>
-                              </div>
-                            </CardContent>
-                          </Card>
-                        )
-                      )}
+                              </CardContent>
+                            </Card>
+                          )
+                        )}
+                      </div>
                     </div>
                   </div>
                 ) : (
-                  <div className="space-y-4">
-                    {/* Back Button */}
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => setSelectedWorkshopForCert(null)}
-                      className="gap-2"
-                    >
-                      <X className="h-4 w-4" />
-                      Change Workshop
-                    </Button>
-
-                    {/* Certificate Preview */}
-                    <div
-                      className="border rounded-lg bg-gray-50 p-3 overflow-auto"
-                      style={{
-                        maxWidth: "calc(95vw - 48px)",
-                        maxHeight: "calc(95vh - 250px)",
-                      }}
-                    >
-                      <div
-                        className="flex justify-center"
-                        style={{
-                          transform: "scale(0.5)",
-                          transformOrigin: "top center",
-                          marginBottom: "-500px",
-                        }}
+                  <div className="flex flex-col gap-2 sm:gap-3 flex-1 overflow-hidden">
+                    {/* Header with Back Button and Workshop Info */}
+                    <div className="flex flex-wrap items-center justify-between gap-2 flex-shrink-0">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setSelectedWorkshopForCert(null)}
+                        className="gap-1.5 h-7 sm:h-8 text-xs sm:text-sm"
                       >
-                        <WorkshopTemplate
-                          workshop={selectedWorkshopForCert}
-                          participantName={selectedParticipant.name}
-                          showDownload={true}
+                        <X className="h-3 w-3 sm:h-4 sm:w-4" />
+                        Change
+                      </Button>
+                      <div className="flex items-center gap-1.5 px-2 py-1 bg-muted/50 rounded-md">
+                        <Award
+                          className="h-3 w-3 sm:h-4 sm:w-4 flex-shrink-0"
+                          style={{ color: selectedWorkshopForCert.border_color }}
                         />
+                        <span className="text-xs sm:text-sm font-medium truncate max-w-[150px] sm:max-w-[250px]">
+                          {selectedWorkshopForCert.name}
+                        </span>
                       </div>
                     </div>
 
-                    <p className="text-xs text-muted-foreground text-center">
-                      Use the download buttons above to save the certificate
+                    {/* Certificate Preview Container - Properly Scaled */}
+                    <div className="flex-1 min-h-0 border rounded-lg bg-gradient-to-br from-slate-100 via-gray-50 to-slate-100 dark:from-slate-900 dark:via-gray-900 dark:to-slate-900 overflow-auto">
+                      <div
+                        className="flex items-center justify-center p-2 sm:p-4"
+                        style={{
+                          minHeight: '100%',
+                          minWidth: '100%',
+                        }}
+                      >
+                        {/* Fixed-size wrapper that matches the scaled certificate dimensions */}
+                        <div
+                          style={{
+                            width: `${CERT_WIDTH * getCertificateScale()}px`,
+                            height: `${CERT_HEIGHT * getCertificateScale()}px`,
+                            position: 'relative',
+                            flexShrink: 0,
+                          }}
+                        >
+                          {/* The actual certificate scaled from top-left */}
+                          <div
+                            style={{
+                              position: 'absolute',
+                              top: 0,
+                              left: 0,
+                              width: `${CERT_WIDTH}px`,
+                              height: `${CERT_HEIGHT}px`,
+                              transform: `scale(${getCertificateScale()})`,
+                              transformOrigin: 'top left',
+                            }}
+                          >
+                            <WorkshopTemplate
+                              workshop={selectedWorkshopForCert}
+                              participantName={selectedParticipant.name}
+                              showDownload={true}
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Instructions */}
+                    <p className="flex-shrink-0 text-xs text-muted-foreground text-center py-1">
+                      Use the download button on the certificate to save as PDF or PNG
                     </p>
                   </div>
                 )}
@@ -2552,21 +2823,96 @@ const WorkshopCertificates: React.FC = () => {
             }
           }}
         >
-          <DialogContent className="max-w-md">
+          <DialogContent className="max-w-lg">
             <DialogHeader>
               <DialogTitle className="flex items-center gap-2">
                 <Download className="h-5 w-5 text-primary" />
                 Bulk Download Certificates
               </DialogTitle>
               <DialogDescription>
-                Download all certificates for participants of{" "}
-                <strong>{bulkDownloadWorkshop?.name}</strong>
+                Select a workshop and download all certificates for its participants
               </DialogDescription>
             </DialogHeader>
 
-            {bulkDownloadWorkshop && (
-              <div className="space-y-4">
-                {/* Workshop Info */}
+            <div className="space-y-4">
+              {/* Filters Row */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* Workshop Filter */}
+                <div className="space-y-2">
+                  <Label>Select Workshop</Label>
+                  <Select
+                    value={bulkDownloadWorkshop?.id?.toString() || "none"}
+                    onValueChange={(value) => {
+                      if (value === "none") {
+                        setBulkDownloadWorkshop(null);
+                      } else {
+                        const workshop = workshops.find((w) => w.id?.toString() === value);
+                        if (workshop) setBulkDownloadWorkshop(workshop);
+                      }
+                    }}
+                    disabled={isBulkDownloading}
+                  >
+                    <SelectTrigger className={!bulkDownloadWorkshop ? "border-destructive" : ""}>
+                      <SelectValue placeholder="Choose a workshop" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none">Select workshop</SelectItem>
+                      {workshops.map((workshop) => (
+                        <SelectItem key={workshop.id} value={workshop.id!.toString()}>
+                          <div className="flex items-center gap-2">
+                            <Award className="h-4 w-4" style={{ color: workshop.border_color }} />
+                            {workshop.name}
+                          </div>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Participant Type Filter */}
+                <div className="space-y-2">
+                  <Label>Participant Type</Label>
+                  <Select
+                    value={bulkDownloadTypeFilter}
+                    onValueChange={setBulkDownloadTypeFilter}
+                    disabled={isBulkDownloading}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">
+                        <div className="flex items-center gap-2">
+                          <Users className="h-4 w-4" />
+                          All Types
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="kug_student">
+                        <div className="flex items-center gap-2">
+                          <Building className="h-4 w-4" />
+                          KUG Student
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="external">
+                        <div className="flex items-center gap-2">
+                          <UserCheck className="h-4 w-4" />
+                          External
+                        </div>
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              {!bulkDownloadWorkshop && (
+                <p className="text-xs text-destructive flex items-center gap-1">
+                  <AlertCircle className="h-3 w-3" />
+                  Please select a workshop to download certificates
+                </p>
+              )}
+
+              {/* Workshop Info - Only show when workshop is selected */}
+              {bulkDownloadWorkshop && (
                 <div className="bg-muted/50 rounded-lg p-4">
                   <div className="flex items-center gap-3">
                     <div
@@ -2584,73 +2930,81 @@ const WorkshopCertificates: React.FC = () => {
                       <h4 className="font-medium">{bulkDownloadWorkshop.name}</h4>
                       <p className="text-xs text-muted-foreground">
                         {formatDate(bulkDownloadWorkshop.start_date)} •{" "}
-                        {getWorkshopParticipants(bulkDownloadWorkshop.id!).length}{" "}
-                        participants
+                        {bulkDownloadWorkshop.place}
+                      </p>
+                      <p className="text-xs font-medium text-primary">
+                        {getFilteredBulkDownloadParticipants().length} of{" "}
+                        {getWorkshopParticipants(bulkDownloadWorkshop.id!).length} participants
+                        {bulkDownloadTypeFilter !== "all" && (
+                          <span className="text-muted-foreground font-normal">
+                            {" "}({bulkDownloadTypeFilter === "kug_student" ? "KUG Students" : "External"})
+                          </span>
+                        )}
                       </p>
                     </div>
                   </div>
                 </div>
+              )}
 
-                {!isBulkDownloading && (
-                  <div className="space-y-2">
-                    <p className="text-xs text-muted-foreground">
-                      Each certificate will be downloaded as a separate PDF file
-                    </p>
-                  </div>
-                )}
-
-                {/* Progress */}
-                {isBulkDownloading && (
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between text-sm">
-                      <span>Downloading certificates...</span>
-                      <span className="font-medium">
-                        {bulkDownloadProgress} / {bulkDownloadTotal}
-                      </span>
-                    </div>
-                    <div className="w-full bg-muted rounded-full h-2">
-                      <div
-                        className="bg-primary h-2 rounded-full transition-all duration-300"
-                        style={{
-                          width: `${(bulkDownloadProgress / bulkDownloadTotal) * 100}%`,
-                        }}
-                      />
-                    </div>
-                    <p className="text-xs text-muted-foreground text-center">
-                      Please wait while certificates are being generated...
-                    </p>
-                  </div>
-                )}
-
-                {/* Actions */}
-                <div className="flex justify-end gap-3 pt-2">
-                  <Button
-                    variant="outline"
-                    onClick={() => setIsBulkDownloadDialogOpen(false)}
-                    disabled={isBulkDownloading}
-                  >
-                    Cancel
-                  </Button>
-                  <Button
-                    onClick={handleBulkDownload}
-                    disabled={isBulkDownloading}
-                    className="gap-2"
-                  >
-                    {isBulkDownloading ? (
-                      <>
-                        <Loader2 className="h-4 w-4 animate-spin" />
-                        Downloading...
-                      </>
-                    ) : (
-                      <>
-                        <Download className="h-4 w-4" />
-                        Download All ({getWorkshopParticipants(bulkDownloadWorkshop.id!).length})
-                      </>
-                    )}
-                  </Button>
+              {!isBulkDownloading && bulkDownloadWorkshop && (
+                <div className="space-y-2">
+                  <p className="text-xs text-muted-foreground">
+                    Each certificate will be downloaded as a separate PDF file
+                  </p>
                 </div>
+              )}
+
+              {/* Progress */}
+              {isBulkDownloading && (
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between text-sm">
+                    <span>Downloading certificates...</span>
+                    <span className="font-medium">
+                      {bulkDownloadProgress} / {bulkDownloadTotal}
+                    </span>
+                  </div>
+                  <div className="w-full bg-muted rounded-full h-2">
+                    <div
+                      className="bg-primary h-2 rounded-full transition-all duration-300"
+                      style={{
+                        width: `${(bulkDownloadProgress / bulkDownloadTotal) * 100}%`,
+                      }}
+                    />
+                  </div>
+                  <p className="text-xs text-muted-foreground text-center">
+                    Please wait while certificates are being generated...
+                  </p>
+                </div>
+              )}
+
+              {/* Actions */}
+              <div className="flex justify-end gap-3 pt-2">
+                <Button
+                  variant="outline"
+                  onClick={() => setIsBulkDownloadDialogOpen(false)}
+                  disabled={isBulkDownloading}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  onClick={handleBulkDownload}
+                  disabled={isBulkDownloading || !bulkDownloadWorkshop || getFilteredBulkDownloadParticipants().length === 0}
+                  className="gap-2"
+                >
+                  {isBulkDownloading ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      Downloading...
+                    </>
+                  ) : (
+                    <>
+                      <Download className="h-4 w-4" />
+                      Download {bulkDownloadWorkshop ? `(${getFilteredBulkDownloadParticipants().length})` : ""}
+                    </>
+                  )}
+                </Button>
               </div>
-            )}
+            </div>
           </DialogContent>
         </Dialog>
       </div>

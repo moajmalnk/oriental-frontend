@@ -75,6 +75,7 @@ export const WorkshopTemplate: React.FC<WorkshopTemplateProps> = ({
   // --- Design Helpers ---
 
   const backgroundColor = workshop.background_color || "#ffffff";
+  const centerBackgroundColor = workshop.center_background_color || "#ffffff";
   const borderColor = workshop.border_color || "#4b9164";
   const titleColor = workshop.title_color || "#4b9164";
   const nameColor = workshop.name_color || "#4b9164";
@@ -230,7 +231,9 @@ export const WorkshopTemplate: React.FC<WorkshopTemplateProps> = ({
             className="absolute inset-10 rounded-[40px] border-[10px] z-[5] shadow-[0_0_40px_rgba(0,0,0,0.06)]"
             style={{
               borderColor: hexToRgba(borderColor, 0.5),
-              background: "rgba(255,255,255,0.97)",
+              background: centerBackgroundColor === "#ffffff"
+                ? "rgba(255,255,255,0.97)"
+                : centerBackgroundColor,
             }}
           />
 
@@ -263,7 +266,7 @@ export const WorkshopTemplate: React.FC<WorkshopTemplateProps> = ({
                   </span>
                 </p>
 
-                {/* Contact Bar */}
+                {/* Contact  Bar */}
                 <div
                   style={{
                     display: "flex",
@@ -467,3 +470,4 @@ export const WorkshopTemplate: React.FC<WorkshopTemplateProps> = ({
 };
 
 export default WorkshopTemplate;
+
