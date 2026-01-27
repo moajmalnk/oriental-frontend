@@ -69,6 +69,10 @@ export interface Subject {
   ce_max?: number | null;
   pe_max?: number | null;
   pw_max?: number | null;
+  pr_max?: number | null;
+  project_max?: number | null;
+  viva_max?: number | null;
+  pl_max?: number | null;
   theory_total?: number | null;
   practical_total?: number | null;
   overall_total?: number | null;
@@ -116,6 +120,10 @@ export interface StudentMark {
   ce_obtained?: number | null;
   pe_obtained?: number | null;
   pw_obtained?: number | null;
+  pr_obtained?: number | null;
+  project_obtained?: number | null;
+  viva_obtained?: number | null;
+  pl_obtained?: number | null;
   theory_total?: number | null;
   practical_total?: number | null;
   overall_obtained?: number | null;
@@ -127,6 +135,10 @@ export interface SubjectMark {
   CE?: number | null;
   PE?: number | null;
   PW?: number | null;
+  PR?: number | null;
+  Project?: number | null;
+  Viva?: number | null;
+  PL?: number | null;
   TheoryTotal?: number | null;
   PracticalTotal?: number | null;
   OverallObtained?: number | null;
@@ -136,6 +148,10 @@ export interface SubjectMark {
   CE_Max?: number | null;
   PE_Max?: number | null;
   PW_Max?: number | null;
+  PR_Max?: number | null;
+  Project_Max?: number | null;
+  Viva_Max?: number | null;
+  PL_Max?: number | null;
   TheoryTotal_Max?: number | null;
   PracticalTotal_Max?: number | null;
   OverallTotal_Max?: number | null;

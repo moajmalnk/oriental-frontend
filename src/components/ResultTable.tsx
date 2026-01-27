@@ -44,14 +44,14 @@ export const ResultTable = ({ student }: ResultTableProps) => {
   const getTheorySubjects = () => {
     if (!student.Subjects) return [];
     return student.Subjects.filter(
-      (subject) => subject.SubjectType === "Theory"
+      (subject) => subject.SubjectType === "Theory",
     );
   };
 
   const getPracticalSubjects = () => {
     if (!student.Subjects) return [];
     return student.Subjects.filter(
-      (subject) => subject.SubjectType === "Practical"
+      (subject) => subject.SubjectType === "Practical",
     );
   };
 
@@ -101,15 +101,43 @@ export const ResultTable = ({ student }: ResultTableProps) => {
     </div>
   );
 
+  // Check which practical fields have data
+  const hasPracticalField = (field: keyof (typeof student.Subjects)[0]) => {
+    const practicalSubjects = getPracticalSubjects();
+    const maxField = `${field}_Max` as keyof (typeof student.Subjects)[0];
+    return practicalSubjects.some(
+      (subject) =>
+        (subject[field] !== null && subject[field] !== undefined) ||
+        (subject[maxField] !== null &&
+          subject[maxField] !== undefined &&
+          subject[maxField] !== 0),
+    );
+  };
+
+  const showPE = hasPracticalField("PE");
+  const showPW = hasPracticalField("PW");
+  const showPR = hasPracticalField("PR");
+  const showProject = hasPracticalField("Project");
+  const showViva = hasPracticalField("Viva");
+  const showPL = hasPracticalField("PL");
+
   const MobilePracticalRow = ({
     subject,
     pw,
     pe,
+    pr,
+    project,
+    viva,
+    pl,
     total,
   }: {
     subject: string;
     pw: number | string | null;
     pe: number | string | null;
+    pr: number | string | null;
+    project: number | string | null;
+    viva: number | string | null;
+    pl: number | string | null;
     total: number | string | null;
   }) => (
     <div className="bg-gradient-card rounded-lg p-3 sm:p-4 border border-border/50 space-y-2 sm:space-y-3">
@@ -117,18 +145,54 @@ export const ResultTable = ({ student }: ResultTableProps) => {
         {subject}
       </h4>
       <div className="grid grid-cols-3 gap-1 sm:gap-2 text-xs">
-        <div className="text-center">
-          <span className="text-muted-foreground block text-xs">P.E</span>
-          <span className="font-mono font-medium text-sm">
-            {formatScore(pe)}
-          </span>
-        </div>
-        <div className="text-center">
-          <span className="text-muted-foreground block text-xs">P.W</span>
-          <span className="font-mono font-medium text-sm">
-            {formatScore(pw)}
-          </span>
-        </div>
+        {showPE && (
+          <div className="text-center">
+            <span className="text-muted-foreground block text-xs">P.E</span>
+            <span className="font-mono font-medium text-sm">
+              {formatScore(pe)}
+            </span>
+          </div>
+        )}
+        {showPW && (
+          <div className="text-center">
+            <span className="text-muted-foreground block text-xs">P.W</span>
+            <span className="font-mono font-medium text-sm">
+              {formatScore(pw)}
+            </span>
+          </div>
+        )}
+        {showPR && (
+          <div className="text-center">
+            <span className="text-muted-foreground block text-xs">P.R</span>
+            <span className="font-mono font-medium text-sm">
+              {formatScore(pr)}
+            </span>
+          </div>
+        )}
+        {showProject && (
+          <div className="text-center">
+            <span className="text-muted-foreground block text-xs">Proj</span>
+            <span className="font-mono font-medium text-sm">
+              {formatScore(project)}
+            </span>
+          </div>
+        )}
+        {showViva && (
+          <div className="text-center">
+            <span className="text-muted-foreground block text-xs">Viva</span>
+            <span className="font-mono font-medium text-sm">
+              {formatScore(viva)}
+            </span>
+          </div>
+        )}
+        {showPL && (
+          <div className="text-center">
+            <span className="text-muted-foreground block text-xs">PL</span>
+            <span className="font-mono font-medium text-sm">
+              {formatScore(pl)}
+            </span>
+          </div>
+        )}
         <div className="text-center">
           <span className="text-muted-foreground block text-xs">Total</span>
           <span className="font-mono font-bold text-success text-sm">
@@ -258,6 +322,10 @@ export const ResultTable = ({ student }: ResultTableProps) => {
                       subject={subject.SubjectName}
                       pw={subject.PW}
                       pe={subject.PE}
+                      pr={subject.PR}
+                      project={subject.Project}
+                      viva={subject.Viva}
+                      pl={subject.PL}
                       total={subject.PracticalTotal}
                     />
                   ))}
@@ -271,12 +339,36 @@ export const ResultTable = ({ student }: ResultTableProps) => {
                           <th className="text-left p-2 sm:p-3 md:p-4 lg:p-6 font-semibold text-foreground min-w-[120px] text-xs sm:text-sm md:text-base">
                             Subject
                           </th>
-                          <th className="text-center p-2 sm:p-3 md:p-4 lg:p-6 font-semibold text-foreground min-w-[60px] sm:min-w-[80px] text-xs sm:text-sm md:text-base">
-                            P.E
-                          </th>
-                          <th className="text-center p-2 sm:p-3 md:p-4 lg:p-6 font-semibold text-foreground min-w-[60px] sm:min-w-[80px] text-xs sm:text-sm md:text-base">
-                            P.W
-                          </th>
+                          {showPE && (
+                            <th className="text-center p-2 sm:p-3 md:p-4 lg:p-6 font-semibold text-foreground min-w-[60px] sm:min-w-[80px] text-xs sm:text-sm md:text-base">
+                              P.E
+                            </th>
+                          )}
+                          {showPW && (
+                            <th className="text-center p-2 sm:p-3 md:p-4 lg:p-6 font-semibold text-foreground min-w-[60px] sm:min-w-[80px] text-xs sm:text-sm md:text-base">
+                              P.W
+                            </th>
+                          )}
+                          {showPR && (
+                            <th className="text-center p-2 sm:p-3 md:p-4 lg:p-6 font-semibold text-foreground min-w-[60px] sm:min-w-[80px] text-xs sm:text-sm md:text-base">
+                              P.R
+                            </th>
+                          )}
+                          {showProject && (
+                            <th className="text-center p-2 sm:p-3 md:p-4 lg:p-6 font-semibold text-foreground min-w-[60px] sm:min-w-[80px] text-xs sm:text-sm md:text-base">
+                              Proj
+                            </th>
+                          )}
+                          {showViva && (
+                            <th className="text-center p-2 sm:p-3 md:p-4 lg:p-6 font-semibold text-foreground min-w-[60px] sm:min-w-[80px] text-xs sm:text-sm md:text-base">
+                              Viva
+                            </th>
+                          )}
+                          {showPL && (
+                            <th className="text-center p-2 sm:p-3 md:p-4 lg:p-6 font-semibold text-foreground min-w-[60px] sm:min-w-[80px] text-xs sm:text-sm md:text-base">
+                              PL
+                            </th>
+                          )}
                           <th className="text-center p-2 sm:p-3 md:p-4 lg:p-6 font-semibold text-foreground min-w-[80px] sm:min-w-[100px] text-xs sm:text-sm md:text-base">
                             Total
                           </th>
@@ -291,12 +383,36 @@ export const ResultTable = ({ student }: ResultTableProps) => {
                             <td className="p-2 sm:p-3 md:p-4 lg:p-6 font-medium text-foreground text-xs sm:text-sm md:text-base">
                               {subject.SubjectName}
                             </td>
-                            <td className="text-center p-2 sm:p-3 md:p-4 lg:p-6 font-mono text-xs sm:text-sm md:text-base">
-                              {formatScore(subject.PE)}
-                            </td>
-                            <td className="text-center p-2 sm:p-3 md:p-4 lg:p-6 font-mono text-xs sm:text-sm md:text-base">
-                              {formatScore(subject.PW)}
-                            </td>
+                            {showPE && (
+                              <td className="text-center p-2 sm:p-3 md:p-4 lg:p-6 font-mono text-xs sm:text-sm md:text-base">
+                                {formatScore(subject.PE)}
+                              </td>
+                            )}
+                            {showPW && (
+                              <td className="text-center p-2 sm:p-3 md:p-4 lg:p-6 font-mono text-xs sm:text-sm md:text-base">
+                                {formatScore(subject.PW)}
+                              </td>
+                            )}
+                            {showPR && (
+                              <td className="text-center p-2 sm:p-3 md:p-4 lg:p-6 font-mono text-xs sm:text-sm md:text-base">
+                                {formatScore(subject.PR)}
+                              </td>
+                            )}
+                            {showProject && (
+                              <td className="text-center p-2 sm:p-3 md:p-4 lg:p-6 font-mono text-xs sm:text-sm md:text-base">
+                                {formatScore(subject.Project)}
+                              </td>
+                            )}
+                            {showViva && (
+                              <td className="text-center p-2 sm:p-3 md:p-4 lg:p-6 font-mono text-xs sm:text-sm md:text-base">
+                                {formatScore(subject.Viva)}
+                              </td>
+                            )}
+                            {showPL && (
+                              <td className="text-center p-2 sm:p-3 md:p-4 lg:p-6 font-mono text-xs sm:text-sm md:text-base">
+                                {formatScore(subject.PL)}
+                              </td>
+                            )}
                             <td className="text-center p-2 sm:p-3 md:p-4 lg:p-6 font-bold text-success font-mono text-sm sm:text-base md:text-lg">
                               {formatScore(subject.PracticalTotal)}
                             </td>
@@ -383,22 +499,66 @@ export const ResultTable = ({ student }: ResultTableProps) => {
                           </h5>
                           <div className="grid grid-cols-2 gap-1 sm:gap-2 text-xs">
                             <div className="space-y-1">
-                              <div className="flex justify-between">
-                                <span className="text-muted-foreground text-xs">
-                                  P.E:
-                                </span>
-                                <span className="font-mono font-medium text-sm">
-                                  {subject.PE_Max || "-"}
-                                </span>
-                              </div>
-                              <div className="flex justify-between">
-                                <span className="text-muted-foreground text-xs">
-                                  P.W:
-                                </span>
-                                <span className="font-mono font-medium text-sm">
-                                  {subject.PW_Max || "-"}
-                                </span>
-                              </div>
+                              {showPE && (
+                                <div className="flex justify-between">
+                                  <span className="text-muted-foreground text-xs">
+                                    P.E:
+                                  </span>
+                                  <span className="font-mono font-medium text-sm">
+                                    {subject.PE_Max || "-"}
+                                  </span>
+                                </div>
+                              )}
+                              {showPW && (
+                                <div className="flex justify-between">
+                                  <span className="text-muted-foreground text-xs">
+                                    P.W:
+                                  </span>
+                                  <span className="font-mono font-medium text-sm">
+                                    {subject.PW_Max || "-"}
+                                  </span>
+                                </div>
+                              )}
+                              {showPR && (
+                                <div className="flex justify-between">
+                                  <span className="text-muted-foreground text-xs">
+                                    P.R:
+                                  </span>
+                                  <span className="font-mono font-medium text-sm">
+                                    {subject.PR_Max || "-"}
+                                  </span>
+                                </div>
+                              )}
+                              {showProject && (
+                                <div className="flex justify-between">
+                                  <span className="text-muted-foreground text-xs">
+                                    Proj:
+                                  </span>
+                                  <span className="font-mono font-medium text-sm">
+                                    {subject.Project_Max || "-"}
+                                  </span>
+                                </div>
+                              )}
+                              {showViva && (
+                                <div className="flex justify-between">
+                                  <span className="text-muted-foreground text-xs">
+                                    Viva:
+                                  </span>
+                                  <span className="font-mono font-medium text-sm">
+                                    {subject.Viva_Max || "-"}
+                                  </span>
+                                </div>
+                              )}
+                              {showPL && (
+                                <div className="flex justify-between">
+                                  <span className="text-muted-foreground text-xs">
+                                    PL:
+                                  </span>
+                                  <span className="font-mono font-medium text-sm">
+                                    {subject.PL_Max || "-"}
+                                  </span>
+                                </div>
+                              )}
                             </div>
                             <div className="space-y-1">
                               <div className="flex justify-between">
@@ -484,12 +644,36 @@ export const ResultTable = ({ student }: ResultTableProps) => {
                                 <th className="text-left p-3 sm:p-4 md:p-6 font-semibold text-foreground min-w-[180px] text-sm sm:text-base">
                                   Subject
                                 </th>
-                                <th className="text-center p-3 sm:p-4 md:p-6 font-semibold text-foreground min-w-[80px] text-sm sm:text-base">
-                                  P.E
-                                </th>
-                                <th className="text-center p-3 sm:p-4 md:p-6 font-semibold text-foreground min-w-[80px] text-sm sm:text-base">
-                                  P.W
-                                </th>
+                                {showPE && (
+                                  <th className="text-center p-3 sm:p-4 md:p-6 font-semibold text-foreground min-w-[80px] text-sm sm:text-base">
+                                    P.E
+                                  </th>
+                                )}
+                                {showPW && (
+                                  <th className="text-center p-3 sm:p-4 md:p-6 font-semibold text-foreground min-w-[80px] text-sm sm:text-base">
+                                    P.W
+                                  </th>
+                                )}
+                                {showPR && (
+                                  <th className="text-center p-3 sm:p-4 md:p-6 font-semibold text-foreground min-w-[80px] text-sm sm:text-base">
+                                    P.R
+                                  </th>
+                                )}
+                                {showProject && (
+                                  <th className="text-center p-3 sm:p-4 md:p-6 font-semibold text-foreground min-w-[80px] text-sm sm:text-base">
+                                    Proj
+                                  </th>
+                                )}
+                                {showViva && (
+                                  <th className="text-center p-3 sm:p-4 md:p-6 font-semibold text-foreground min-w-[80px] text-sm sm:text-base">
+                                    Viva
+                                  </th>
+                                )}
+                                {showPL && (
+                                  <th className="text-center p-3 sm:p-4 md:p-6 font-semibold text-foreground min-w-[80px] text-sm sm:text-base">
+                                    PL
+                                  </th>
+                                )}
                                 <th className="text-center p-3 sm:p-4 md:p-6 font-semibold text-foreground min-w-[100px] text-sm sm:text-base">
                                   Total
                                 </th>
@@ -504,12 +688,36 @@ export const ResultTable = ({ student }: ResultTableProps) => {
                                   <td className="p-3 sm:p-4 md:p-6 font-medium text-foreground text-sm sm:text-base">
                                     {subject.SubjectName}
                                   </td>
-                                  <td className="text-center p-3 sm:p-4 md:p-6 font-mono text-sm sm:text-base">
-                                    {subject.PE_Max || "-"}
-                                  </td>
-                                  <td className="text-center p-3 sm:p-4 md:p-6 font-mono text-sm sm:text-base">
-                                    {subject.PW_Max || "-"}
-                                  </td>
+                                  {showPE && (
+                                    <td className="text-center p-3 sm:p-4 md:p-6 font-mono text-sm sm:text-base">
+                                      {subject.PE_Max || "-"}
+                                    </td>
+                                  )}
+                                  {showPW && (
+                                    <td className="text-center p-3 sm:p-4 md:p-6 font-mono text-sm sm:text-base">
+                                      {subject.PW_Max || "-"}
+                                    </td>
+                                  )}
+                                  {showPR && (
+                                    <td className="text-center p-3 sm:p-4 md:p-6 font-mono text-sm sm:text-base">
+                                      {subject.PR_Max || "-"}
+                                    </td>
+                                  )}
+                                  {showProject && (
+                                    <td className="text-center p-3 sm:p-4 md:p-6 font-mono text-sm sm:text-base">
+                                      {subject.Project_Max || "-"}
+                                    </td>
+                                  )}
+                                  {showViva && (
+                                    <td className="text-center p-3 sm:p-4 md:p-6 font-mono text-sm sm:text-base">
+                                      {subject.Viva_Max || "-"}
+                                    </td>
+                                  )}
+                                  {showPL && (
+                                    <td className="text-center p-3 sm:p-4 md:p-6 font-mono text-sm sm:text-base">
+                                      {subject.PL_Max || "-"}
+                                    </td>
+                                  )}
                                   <td className="text-center p-3 sm:p-4 md:p-6 font-bold text-success font-mono text-base sm:text-lg">
                                     {subject.PracticalTotal_Max || "-"}
                                   </td>

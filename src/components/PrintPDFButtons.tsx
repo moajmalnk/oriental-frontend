@@ -119,7 +119,7 @@ export const PrintPDFButtons = ({ student }: PrintPDFButtonsProps) => {
               // Scale to fit the page
               const scale = Math.min(
                 pdfWidth / compressedImg.width,
-                pdfHeight / compressedImg.height
+                pdfHeight / compressedImg.height,
               );
               const finalWidth = compressedImg.width * scale;
               const finalHeight = compressedImg.height * scale;
@@ -134,7 +134,7 @@ export const PrintPDFButtons = ({ student }: PrintPDFButtonsProps) => {
                 x,
                 y,
                 finalWidth,
-                finalHeight
+                finalHeight,
               );
               resolve(true);
             };
@@ -145,7 +145,7 @@ export const PrintPDFButtons = ({ student }: PrintPDFButtonsProps) => {
       } catch (error) {
         console.warn(
           "Could not load letterhead image, continuing without it:",
-          error
+          error,
         );
       }
 
@@ -181,6 +181,46 @@ export const PrintPDFButtons = ({ student }: PrintPDFButtonsProps) => {
         colWidths[0] + colWidths[1] + colWidths[2] + colWidths[3]; // Total table width
       const tableStartX = (pdfWidth - totalTableWidth) / 2; // Center the table
 
+      // Detect active practical fields for use in both tables
+      const allPracticalFields = [
+        { key: "PE", label: "P.E", maxKey: "PE_Max" },
+        { key: "PW", label: "P.W", maxKey: "PW_Max" },
+        { key: "PR", label: "P.R", maxKey: "PR_Max" },
+        { key: "Project", label: "Proj", maxKey: "Project_Max" },
+        { key: "Viva", label: "Viva", maxKey: "Viva_Max" },
+        { key: "PL", label: "PL", maxKey: "PL_Max" },
+      ];
+
+      const practicalSubjectsList =
+        student.Subjects?.filter(
+          (subject: any) => subject?.SubjectType === "Practical",
+        ) || [];
+
+      let activePracticalFields = allPracticalFields.filter((field) => {
+        return practicalSubjectsList.some(
+          (s: any) =>
+            (s[field.key] !== null && s[field.key] !== undefined) ||
+            (s[field.maxKey] !== null &&
+              s[field.maxKey] !== undefined &&
+              s[field.maxKey] !== 0),
+        );
+      });
+
+      // Default to PE and PW if no fields are active (legacy behavior)
+      if (activePracticalFields.length === 0) {
+        activePracticalFields = [
+          { key: "PE", label: "P.E", maxKey: "PE_Max" },
+          { key: "PW", label: "P.W", maxKey: "PW_Max" },
+        ];
+      }
+
+      // Calculate column widths
+      const practNameColWidth = 80;
+      const practTotalColWidth = 25;
+      const availableWidthForMarks = 50;
+      const markColWidth =
+        availableWidthForMarks / activePracticalFields.length;
+
       // Table header
       pdf.setFontSize(10);
       pdf.setFont("helvetica", "bold");
@@ -196,7 +236,7 @@ export const PrintPDFButtons = ({ student }: PrintPDFButtonsProps) => {
         colWidths[1],
         8,
         1.5,
-        1.5
+        1.5,
       );
       pdf.roundedRect(
         tableStartX + colWidths[0] + colWidths[1],
@@ -204,7 +244,7 @@ export const PrintPDFButtons = ({ student }: PrintPDFButtonsProps) => {
         colWidths[2],
         8,
         1.5,
-        1.5
+        1.5,
       );
       pdf.roundedRect(
         tableStartX + colWidths[0] + colWidths[1] + colWidths[2],
@@ -212,7 +252,7 @@ export const PrintPDFButtons = ({ student }: PrintPDFButtonsProps) => {
         colWidths[3],
         8,
         1.5,
-        1.5
+        1.5,
       );
 
       pdf.text("SUBJECT-THEORY", tableStartX + 3, tableStartY);
@@ -220,13 +260,13 @@ export const PrintPDFButtons = ({ student }: PrintPDFButtonsProps) => {
         "TE",
         tableStartX + colWidths[0] + colWidths[1] / 2,
         tableStartY,
-        { align: "center" }
+        { align: "center" },
       );
       pdf.text(
         "CE",
         tableStartX + colWidths[0] + colWidths[1] + colWidths[2] / 2,
         tableStartY,
-        { align: "center" }
+        { align: "center" },
       );
       pdf.text(
         "TOTAL",
@@ -236,7 +276,7 @@ export const PrintPDFButtons = ({ student }: PrintPDFButtonsProps) => {
           colWidths[2] +
           colWidths[3] / 2,
         tableStartY,
-        { align: "center" }
+        { align: "center" },
       );
 
       let currentY = tableStartY + 8;
@@ -245,7 +285,7 @@ export const PrintPDFButtons = ({ student }: PrintPDFButtonsProps) => {
       if (student.Subjects && student.Subjects.length > 0) {
         // Filter only theory subjects for the theory section
         const theorySubjects = student.Subjects.filter(
-          (subject: any) => subject?.SubjectType === "Theory"
+          (subject: any) => subject?.SubjectType === "Theory",
         );
 
         // Use actual backend subjects data (only theory subjects)
@@ -283,7 +323,7 @@ export const PrintPDFButtons = ({ student }: PrintPDFButtonsProps) => {
             colWidths[1],
             8,
             1.5,
-            1.5
+            1.5,
           );
           pdf.roundedRect(
             tableStartX + colWidths[0] + colWidths[1],
@@ -291,7 +331,7 @@ export const PrintPDFButtons = ({ student }: PrintPDFButtonsProps) => {
             colWidths[2],
             8,
             1.5,
-            1.5
+            1.5,
           );
           pdf.roundedRect(
             tableStartX + colWidths[0] + colWidths[1] + colWidths[2],
@@ -299,7 +339,7 @@ export const PrintPDFButtons = ({ student }: PrintPDFButtonsProps) => {
             colWidths[3],
             8,
             1.5,
-            1.5
+            1.5,
           );
 
           // Add text
@@ -308,13 +348,13 @@ export const PrintPDFButtons = ({ student }: PrintPDFButtonsProps) => {
             subject.te?.toString() || "-",
             tableStartX + colWidths[0] + colWidths[1] / 2,
             rowY,
-            { align: "center" }
+            { align: "center" },
           );
           pdf.text(
             subject.ce?.toString() || "-",
             tableStartX + colWidths[0] + colWidths[1] + colWidths[2] / 2,
             rowY,
-            { align: "center" }
+            { align: "center" },
           );
           pdf.text(
             subject.overallObtained?.toString() || "-",
@@ -324,147 +364,103 @@ export const PrintPDFButtons = ({ student }: PrintPDFButtonsProps) => {
               colWidths[2] +
               colWidths[3] / 2,
             rowY,
-            { align: "center" }
+            { align: "center" },
           );
         });
 
         currentY += subjects.length * 8 + 5;
 
         // Practical section with merged first column
-        // Draw the merged PRACTICAL cell spanning 2 rows
-        pdf.roundedRect(tableStartX, currentY - 5, colWidths[0], 16, 1.5, 1.5); // Height of 16 for 2 rows
-        pdf.roundedRect(
-          tableStartX + colWidths[0],
-          currentY - 5,
-          colWidths[1],
-          8,
-          1.5,
-          1.5
-        );
-        pdf.roundedRect(
-          tableStartX + colWidths[0] + colWidths[1],
-          currentY - 5,
-          colWidths[2],
-          8,
-          1.5,
-          1.5
-        );
-        pdf.roundedRect(
-          tableStartX + colWidths[0] + colWidths[1] + colWidths[2],
-          currentY - 5,
-          colWidths[3],
-          8,
-          1.5,
-          1.5
-        );
 
-        pdf.text("PRACTICAL", tableStartX + 3, currentY + 4); // Center vertically in merged cell
-        pdf.text(
-          "P.E",
-          tableStartX + colWidths[0] + colWidths[1] / 2,
-          currentY,
-          { align: "center" }
+        // Draw the merged PRACTICAL cell spanning 2 rows
+        pdf.roundedRect(
+          tableStartX,
+          currentY - 5,
+          practNameColWidth,
+          16,
+          1.5,
+          1.5,
+        ); // Height of 16 for 2 rows
+
+        // Draw Header Rectangles and Text
+        let currentX = tableStartX + practNameColWidth;
+
+        activePracticalFields.forEach((field) => {
+          pdf.roundedRect(currentX, currentY - 5, markColWidth, 8, 1.5, 1.5);
+          pdf.text(field.label, currentX + markColWidth / 2, currentY, {
+            align: "center",
+          });
+          currentX += markColWidth;
+        });
+
+        // Draw Total Header
+        pdf.roundedRect(
+          currentX,
+          currentY - 5,
+          practTotalColWidth,
+          8,
+          1.5,
+          1.5,
         );
-        pdf.text(
-          "P.W",
-          tableStartX + colWidths[0] + colWidths[1] + colWidths[2] / 2,
-          currentY,
-          { align: "center" }
-        );
-        pdf.text(
-          "TOTAL",
-          tableStartX +
-            colWidths[0] +
-            colWidths[1] +
-            colWidths[2] +
-            colWidths[3] / 2,
-          currentY,
-          { align: "center" }
-        );
+        pdf.text("TOTAL", currentX + practTotalColWidth / 2, currentY, {
+          align: "center",
+        });
+
+        // Draw "PRACTICAL" label in the merged cell
+        pdf.text("PRACTICAL", tableStartX + 3, currentY + 4);
 
         currentY += 8;
 
-        // Practical data row
+        // Draw Data Rectangles
+        currentX = tableStartX + practNameColWidth;
+        activePracticalFields.forEach(() => {
+          pdf.roundedRect(currentX, currentY - 5, markColWidth, 8, 1.5, 1.5);
+          currentX += markColWidth;
+        });
         pdf.roundedRect(
-          tableStartX + colWidths[0],
+          currentX,
           currentY - 5,
-          colWidths[1],
+          practTotalColWidth,
           8,
           1.5,
-          1.5
-        );
-        pdf.roundedRect(
-          tableStartX + colWidths[0] + colWidths[1],
-          currentY - 5,
-          colWidths[2],
-          8,
           1.5,
-          1.5
-        );
-        pdf.roundedRect(
-          tableStartX + colWidths[0] + colWidths[1] + colWidths[2],
-          currentY - 5,
-          colWidths[3],
-          8,
-          1.5,
-          1.5
         );
 
         pdf.setFont("helvetica", "normal");
         pdf.setFontSize(9);
-        // Get practical subjects from backend data
-        const practicalSubjects =
-          student.Subjects?.filter(
-            (subject: any) => subject?.SubjectType === "Practical"
-          ) || [];
 
-        if (practicalSubjects.length > 0) {
-          const practicalSubject = practicalSubjects[0]; // Use first practical subject
-          pdf.text(
-            practicalSubject?.PE?.toString() || "-",
-            tableStartX + colWidths[0] + colWidths[1] / 2,
-            currentY,
-            { align: "center" }
-          );
-          pdf.text(
-            practicalSubject?.PW?.toString() || "-",
-            tableStartX + colWidths[0] + colWidths[1] + colWidths[2] / 2,
-            currentY,
-            { align: "center" }
-          );
+        if (practicalSubjectsList.length > 0) {
+          const practicalSubject = practicalSubjectsList[0]; // Using first practical subject as per original design logic
+
+          currentX = tableStartX + practNameColWidth;
+          activePracticalFields.forEach((field) => {
+            pdf.text(
+              practicalSubject[field.key]?.toString() || "-",
+              currentX + markColWidth / 2,
+              currentY,
+              { align: "center" },
+            );
+            currentX += markColWidth;
+          });
+
           pdf.text(
             practicalSubject?.PracticalTotal?.toString() || "-",
-            tableStartX +
-              colWidths[0] +
-              colWidths[1] +
-              colWidths[2] +
-              colWidths[3] / 2,
+            currentX + practTotalColWidth / 2,
             currentY,
-            { align: "center" }
+            { align: "center" },
           );
         } else {
-          pdf.text(
-            "-",
-            tableStartX + colWidths[0] + colWidths[1] / 2,
-            currentY,
-            { align: "center" }
-          );
-          pdf.text(
-            "-",
-            tableStartX + colWidths[0] + colWidths[1] + colWidths[2] / 2,
-            currentY,
-            { align: "center" }
-          );
-          pdf.text(
-            "-",
-            tableStartX +
-              colWidths[0] +
-              colWidths[1] +
-              colWidths[2] +
-              colWidths[3] / 2,
-            currentY,
-            { align: "center" }
-          );
+          // Empty row
+          currentX = tableStartX + practNameColWidth;
+          activePracticalFields.forEach(() => {
+            pdf.text("-", currentX + markColWidth / 2, currentY, {
+              align: "center",
+            });
+            currentX += markColWidth;
+          });
+          pdf.text("-", currentX + practTotalColWidth / 2, currentY, {
+            align: "center",
+          });
         }
       }
 
@@ -477,7 +473,14 @@ export const PrintPDFButtons = ({ student }: PrintPDFButtonsProps) => {
         "Abbreviation: CE-Continuous Evaluation, TE-Terminal Evaluation, P.E-Practical Evaluation, P.W-Practical Work",
         pdfWidth / 2,
         currentY,
-        { align: "center" }
+        { align: "center" },
+      );
+      currentY += 4;
+      pdf.text(
+        "P.R-Practical Record, Proj-Project, Viva-Viva Voce, PL-Practical Lab",
+        pdfWidth / 2,
+        currentY,
+        { align: "center" },
       );
 
       // Add maximum scores section
@@ -502,7 +505,7 @@ export const PrintPDFButtons = ({ student }: PrintPDFButtonsProps) => {
         colWidths[1],
         8,
         1.5,
-        1.5
+        1.5,
       );
       pdf.roundedRect(
         tableStartX + colWidths[0] + colWidths[1],
@@ -510,7 +513,7 @@ export const PrintPDFButtons = ({ student }: PrintPDFButtonsProps) => {
         colWidths[2],
         8,
         1.5,
-        1.5
+        1.5,
       );
       pdf.roundedRect(
         tableStartX + colWidths[0] + colWidths[1] + colWidths[2],
@@ -518,7 +521,7 @@ export const PrintPDFButtons = ({ student }: PrintPDFButtonsProps) => {
         colWidths[3],
         8,
         1.5,
-        1.5
+        1.5,
       );
 
       pdf.text("SUBJECT-THEORY", tableStartX + 3, currentY);
@@ -529,7 +532,7 @@ export const PrintPDFButtons = ({ student }: PrintPDFButtonsProps) => {
         "CE",
         tableStartX + colWidths[0] + colWidths[1] + colWidths[2] / 2,
         currentY,
-        { align: "center" }
+        { align: "center" },
       );
       pdf.text(
         "TOTAL",
@@ -539,7 +542,7 @@ export const PrintPDFButtons = ({ student }: PrintPDFButtonsProps) => {
           colWidths[2] +
           colWidths[3] / 2,
         currentY,
-        { align: "center" }
+        { align: "center" },
       );
 
       currentY += 8;
@@ -548,7 +551,7 @@ export const PrintPDFButtons = ({ student }: PrintPDFButtonsProps) => {
       if (student.Subjects && student.Subjects.length > 0) {
         // Filter only theory subjects for maximum scores
         const theorySubjects = student.Subjects.filter(
-          (subject: any) => subject?.SubjectType === "Theory"
+          (subject: any) => subject?.SubjectType === "Theory",
         );
 
         // Use actual backend subjects data for maximum scores (only theory subjects)
@@ -573,7 +576,7 @@ export const PrintPDFButtons = ({ student }: PrintPDFButtonsProps) => {
             colWidths[1],
             8,
             1.5,
-            1.5
+            1.5,
           );
           pdf.roundedRect(
             tableStartX + colWidths[0] + colWidths[1],
@@ -581,7 +584,7 @@ export const PrintPDFButtons = ({ student }: PrintPDFButtonsProps) => {
             colWidths[2],
             8,
             1.5,
-            1.5
+            1.5,
           );
           pdf.roundedRect(
             tableStartX + colWidths[0] + colWidths[1] + colWidths[2],
@@ -589,7 +592,7 @@ export const PrintPDFButtons = ({ student }: PrintPDFButtonsProps) => {
             colWidths[3],
             8,
             1.5,
-            1.5
+            1.5,
           );
 
           // Add text
@@ -598,13 +601,13 @@ export const PrintPDFButtons = ({ student }: PrintPDFButtonsProps) => {
             subject.te?.toString() || "-",
             tableStartX + colWidths[0] + colWidths[1] / 2,
             rowY,
-            { align: "center" }
+            { align: "center" },
           );
           pdf.text(
             subject.ce?.toString() || "-",
             tableStartX + colWidths[0] + colWidths[1] + colWidths[2] / 2,
             rowY,
-            { align: "center" }
+            { align: "center" },
           );
           pdf.text(
             subject.overallObtained?.toString() || "-",
@@ -614,7 +617,7 @@ export const PrintPDFButtons = ({ student }: PrintPDFButtonsProps) => {
               colWidths[2] +
               colWidths[3] / 2,
             rowY,
-            { align: "center" }
+            { align: "center" },
           );
         });
 
@@ -622,139 +625,94 @@ export const PrintPDFButtons = ({ student }: PrintPDFButtonsProps) => {
 
         // Practical maximum scores with merged first column
         // Draw the merged PRACTICAL cell spanning 2 rows
-        pdf.roundedRect(tableStartX, currentY - 5, colWidths[0], 16, 1.5, 1.5); // Height of 16 for 2 rows
         pdf.roundedRect(
-          tableStartX + colWidths[0],
+          tableStartX,
           currentY - 5,
-          colWidths[1],
-          8,
+          practNameColWidth,
+          16,
           1.5,
-          1.5
-        );
-        pdf.roundedRect(
-          tableStartX + colWidths[0] + colWidths[1],
-          currentY - 5,
-          colWidths[2],
-          8,
           1.5,
-          1.5
-        );
-        pdf.roundedRect(
-          tableStartX + colWidths[0] + colWidths[1] + colWidths[2],
-          currentY - 5,
-          colWidths[3],
-          8,
-          1.5,
-          1.5
-        );
+        ); // Height of 16 for 2 rows
 
-        pdf.text("PRACTICAL", tableStartX + 3, currentY + 4); // Center vertically in merged cell
-        pdf.text(
-          "P.E",
-          tableStartX + colWidths[0] + colWidths[1] / 2,
-          currentY,
-          { align: "center" }
+        // Draw Header Rectangles and Text
+        let maxCurrentX = tableStartX + practNameColWidth;
+
+        activePracticalFields.forEach((field) => {
+          pdf.roundedRect(maxCurrentX, currentY - 5, markColWidth, 8, 1.5, 1.5);
+          pdf.text(field.label, maxCurrentX + markColWidth / 2, currentY, {
+            align: "center",
+          });
+          maxCurrentX += markColWidth;
+        });
+
+        // Draw Total Header
+        pdf.roundedRect(
+          maxCurrentX,
+          currentY - 5,
+          practTotalColWidth,
+          8,
+          1.5,
+          1.5,
         );
-        pdf.text(
-          "P.W",
-          tableStartX + colWidths[0] + colWidths[1] + colWidths[2] / 2,
-          currentY,
-          { align: "center" }
-        );
-        pdf.text(
-          "TOTAL",
-          tableStartX +
-            colWidths[0] +
-            colWidths[1] +
-            colWidths[2] +
-            colWidths[3] / 2,
-          currentY,
-          { align: "center" }
-        );
+        pdf.text("TOTAL", maxCurrentX + practTotalColWidth / 2, currentY, {
+          align: "center",
+        });
+
+        // Draw "PRACTICAL" label in the merged cell
+        pdf.text("PRACTICAL", tableStartX + 3, currentY + 4);
 
         currentY += 8;
 
-        // Practical maximum scores data row
+        // Draw Data Rectangles
+        maxCurrentX = tableStartX + practNameColWidth;
+        activePracticalFields.forEach(() => {
+          pdf.roundedRect(maxCurrentX, currentY - 5, markColWidth, 8, 1.5, 1.5);
+          maxCurrentX += markColWidth;
+        });
         pdf.roundedRect(
-          tableStartX + colWidths[0],
+          maxCurrentX,
           currentY - 5,
-          colWidths[1],
+          practTotalColWidth,
           8,
           1.5,
-          1.5
-        );
-        pdf.roundedRect(
-          tableStartX + colWidths[0] + colWidths[1],
-          currentY - 5,
-          colWidths[2],
-          8,
           1.5,
-          1.5
-        );
-        pdf.roundedRect(
-          tableStartX + colWidths[0] + colWidths[1] + colWidths[2],
-          currentY - 5,
-          colWidths[3],
-          8,
-          1.5,
-          1.5
         );
 
         pdf.setFont("helvetica", "normal");
         pdf.setFontSize(9);
-        // Get practical subjects maximum scores from backend data
-        const practicalSubjects =
-          student.Subjects?.filter(
-            (subject: any) => subject?.SubjectType === "Practical"
-          ) || [];
 
-        if (practicalSubjects.length > 0) {
-          const practicalSubject = practicalSubjects[0]; // Use first practical subject
-          pdf.text(
-            practicalSubject?.PE_Max?.toString() || "-",
-            tableStartX + colWidths[0] + colWidths[1] / 2,
-            currentY,
-            { align: "center" }
-          ); // PE Max
-          pdf.text(
-            practicalSubject?.PW_Max?.toString() || "-",
-            tableStartX + colWidths[0] + colWidths[1] + colWidths[2] / 2,
-            currentY,
-            { align: "center" }
-          ); // PW Max
+        if (practicalSubjectsList.length > 0) {
+          const practicalSubject = practicalSubjectsList[0]; // Using first practical subject
+
+          maxCurrentX = tableStartX + practNameColWidth;
+          activePracticalFields.forEach((field) => {
+            pdf.text(
+              practicalSubject[field.maxKey]?.toString() || "-",
+              maxCurrentX + markColWidth / 2,
+              currentY,
+              { align: "center" },
+            );
+            maxCurrentX += markColWidth;
+          });
+
           pdf.text(
             practicalSubject?.PracticalTotal_Max?.toString() || "-",
-            tableStartX +
-              colWidths[0] +
-              colWidths[1] +
-              colWidths[2] +
-              colWidths[3] / 2,
+            maxCurrentX + practTotalColWidth / 2,
             currentY,
-            { align: "center" }
-          ); // Total Max
+            { align: "center" },
+          );
         } else {
-          pdf.text(
-            "-",
-            tableStartX + colWidths[0] + colWidths[1] / 2,
-            currentY,
-            { align: "center" }
-          );
-          pdf.text(
-            "-",
-            tableStartX + colWidths[0] + colWidths[1] + colWidths[2] / 2,
-            currentY,
-            { align: "center" }
-          );
-          pdf.text(
-            "-",
-            tableStartX +
-              colWidths[0] +
-              colWidths[1] +
-              colWidths[2] +
-              colWidths[3] / 2,
-            currentY,
-            { align: "center" }
-          );
+          // Empty row
+          maxCurrentX = tableStartX + practNameColWidth;
+          activePracticalFields.forEach(() => {
+            pdf.text("-", maxCurrentX + markColWidth / 2, currentY, {
+              align: "center",
+            });
+            maxCurrentX += markColWidth;
+          });
+          pdf.text("-", maxCurrentX + practTotalColWidth / 2, currentY, {
+            align: "center",
+          });
         }
       }
 
@@ -827,7 +785,7 @@ export const PrintPDFButtons = ({ student }: PrintPDFButtonsProps) => {
                 sealX - 4,
                 sealY - 9.5,
                 sealWidth,
-                sealHeight
+                sealHeight,
               );
               resolve(true);
             };
@@ -844,7 +802,7 @@ export const PrintPDFButtons = ({ student }: PrintPDFButtonsProps) => {
 
       // Save the PDF
       pdf.save(
-        `${student.RegiNo}_${student.Name.replace(/\s+/g, "_")}_MarkList.pdf`
+        `${student.RegiNo}_${student.Name.replace(/\s+/g, "_")}_MarkList.pdf`,
       );
 
       toast({
@@ -921,7 +879,7 @@ export const PrintPDFButtons = ({ student }: PrintPDFButtonsProps) => {
             compressedImg.onload = () => {
               const scale = Math.min(
                 pdfWidth / compressedImg.width,
-                pdfHeight / compressedImg.height
+                pdfHeight / compressedImg.height,
               );
               const finalWidth = compressedImg.width * scale;
               const finalHeight = compressedImg.height * scale;
@@ -934,7 +892,7 @@ export const PrintPDFButtons = ({ student }: PrintPDFButtonsProps) => {
                 x,
                 y,
                 finalWidth,
-                finalHeight
+                finalHeight,
               );
               resolve(true);
             };
@@ -945,7 +903,7 @@ export const PrintPDFButtons = ({ student }: PrintPDFButtonsProps) => {
       } catch (error) {
         console.warn(
           "Could not load certificate template, continuing without it:",
-          error
+          error,
         );
       }
 
@@ -1014,7 +972,7 @@ export const PrintPDFButtons = ({ student }: PrintPDFButtonsProps) => {
                   photoX - 2,
                   photoY - 8,
                   photoSize,
-                  photoSize * 1.200
+                  photoSize * 1.2,
                 );
                 resolve(true);
               };
@@ -1055,10 +1013,10 @@ export const PrintPDFButtons = ({ student }: PrintPDFButtonsProps) => {
               pdf.addImage(
                 compressedImg,
                 "PNG",
-                courseX - signWidth / 2 -5,
+                courseX - signWidth / 2 - 5,
                 bottomY - 25,
                 signWidth + 12,
-                ((signWidth * compressedImg.height) / compressedImg.width) + 12
+                (signWidth * compressedImg.height) / compressedImg.width + 12,
               );
               resolve(true);
             };
@@ -1101,7 +1059,7 @@ export const PrintPDFButtons = ({ student }: PrintPDFButtonsProps) => {
                 pdfWidth - refX - signWidth - 15,
                 bottomY - 26,
                 signWidth + 12,
-                ((signWidth * compressedImg.height) / compressedImg.width) + 12
+                (signWidth * compressedImg.height) / compressedImg.width + 12,
               );
               resolve(true);
             };
@@ -1144,7 +1102,7 @@ export const PrintPDFButtons = ({ student }: PrintPDFButtonsProps) => {
                 sealX - 4,
                 sealY - 13,
                 sealWidth,
-                sealHeight
+                sealHeight,
               );
               resolve(true);
             };
@@ -1176,7 +1134,7 @@ export const PrintPDFButtons = ({ student }: PrintPDFButtonsProps) => {
       pdf.text(
         `: ${student.CertificateNumber || "2025" + student.RegiNo.slice(-4)}`,
         refX + 25,
-        refStartY + 8
+        refStartY + 8,
       );
 
       // Add course conferred section
@@ -1218,7 +1176,7 @@ export const PrintPDFButtons = ({ student }: PrintPDFButtonsProps) => {
 
       const getEndDate = (
         startDate: string,
-        durationMonths?: number | null
+        durationMonths?: number | null,
       ) => {
         if (!durationMonths) return null;
         const start = new Date(startDate);
@@ -1232,7 +1190,7 @@ export const PrintPDFButtons = ({ student }: PrintPDFButtonsProps) => {
 
       const endDate = getEndDate(
         student.Batch.start_date,
-        student.Batch.duration_months
+        student.Batch.duration_months,
       );
 
       // Add completion statement with text wrapping
@@ -1303,12 +1261,12 @@ export const PrintPDFButtons = ({ student }: PrintPDFButtonsProps) => {
         bottomY - 4,
         {
           align: "center",
-        }
+        },
       );
 
       // Save the PDF
       pdf.save(
-        `${student.RegiNo}_${student.Name.replace(/\s+/g, "_")}_Certificate.pdf`
+        `${student.RegiNo}_${student.Name.replace(/\s+/g, "_")}_Certificate.pdf`,
       );
 
       toast({

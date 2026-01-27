@@ -194,7 +194,7 @@ const Courses: React.FC = () => {
 
       // Search in subject names
       const subjectMatch = course.subjects.some((subject) =>
-        subject.name.toLowerCase().includes(searchTerm)
+        subject.name.toLowerCase().includes(searchTerm),
       );
 
       return courseMatch || subjectMatch;
@@ -255,7 +255,17 @@ const Courses: React.FC = () => {
       short_code: "",
       duration_months: null,
       subjects: [
-        { name: "", te_max: null, ce_max: null, pe_max: null, pw_max: null },
+        {
+          name: "",
+          te_max: null,
+          ce_max: null,
+          pe_max: null,
+          pw_max: null,
+          pr_max: null,
+          project_max: null,
+          viva_max: null,
+          pl_max: null,
+        },
       ],
     });
     setErrors({});
@@ -280,6 +290,10 @@ const Courses: React.FC = () => {
                   ce_max: null,
                   pe_max: null,
                   pw_max: null,
+                  pr_max: null,
+                  project_max: null,
+                  viva_max: null,
+                  pl_max: null,
                 },
               ],
       });
@@ -307,7 +321,7 @@ const Courses: React.FC = () => {
 
     // Validate subjects
     const validSubjects = formData.subjects.filter((subject) =>
-      subject.name.trim()
+      subject.name.trim(),
     );
     if (validSubjects.length === 0) {
       newErrors.subjects = "At least one subject is required";
@@ -320,7 +334,11 @@ const Courses: React.FC = () => {
         (subject.ce_max !== null && subject.ce_max !== undefined);
       const hasPractical =
         (subject.pe_max !== null && subject.pe_max !== undefined) ||
-        (subject.pw_max !== null && subject.pw_max !== undefined);
+        (subject.pw_max !== null && subject.pw_max !== undefined) ||
+        (subject.pr_max !== null && subject.pr_max !== undefined) ||
+        (subject.project_max !== null && subject.project_max !== undefined) ||
+        (subject.viva_max !== null && subject.viva_max !== undefined) ||
+        (subject.pl_max !== null && subject.pl_max !== undefined);
 
       if (!hasTheory && !hasPractical) {
         newErrors[`subject_${index}`] =
@@ -422,7 +440,17 @@ const Courses: React.FC = () => {
       ...formData,
       subjects: [
         ...formData.subjects,
-        { name: "", te_max: null, ce_max: null, pe_max: null, pw_max: null },
+        {
+          name: "",
+          te_max: null,
+          ce_max: null,
+          pe_max: null,
+          pw_max: null,
+          pr_max: null,
+          project_max: null,
+          viva_max: null,
+          pl_max: null,
+        },
       ],
     });
   };
@@ -444,14 +472,18 @@ const Courses: React.FC = () => {
 
   // Get subject type
   const getSubjectType = (
-    subject: Subject
+    subject: Subject,
   ): "theory" | "practical" | "none" => {
     const hasTheory =
       (subject.te_max !== null && subject.te_max !== undefined) ||
       (subject.ce_max !== null && subject.ce_max !== undefined);
     const hasPractical =
       (subject.pe_max !== null && subject.pe_max !== undefined) ||
-      (subject.pw_max !== null && subject.pw_max !== undefined);
+      (subject.pw_max !== null && subject.pw_max !== undefined) ||
+      (subject.pr_max !== null && subject.pr_max !== undefined) ||
+      (subject.project_max !== null && subject.project_max !== undefined) ||
+      (subject.viva_max !== null && subject.viva_max !== undefined) ||
+      (subject.pl_max !== null && subject.pl_max !== undefined);
 
     if (hasTheory) return "theory";
     if (hasPractical) return "practical";
@@ -522,9 +554,9 @@ const Courses: React.FC = () => {
               pw_max?: number;
             }> = [];
 
-            // Parse subjects - assuming format: Subject Name, Type, TE Max, CE Max, PE Max, PW Max
-            // Each subject takes 6 columns: Name, Type, TE Max, CE Max, PE Max, PW Max
-            for (let i = 3; i < row.length; i += 6) {
+            // Parse subjects - assuming format: Subject Name, Type, TE Max, CE Max, PE Max, PW Max, PR Max, Proj Max, Viva Max, PL Max
+            // Each subject takes 10 columns
+            for (let i = 3; i < row.length; i += 10) {
               if (row[i] && row[i].toString().trim()) {
                 const subjectName = row[i].toString().trim();
                 const subjectType = row[i + 1]?.toString().trim().toLowerCase();
@@ -536,6 +568,10 @@ const Courses: React.FC = () => {
                     ce_max: row[i + 3] ? parseInt(row[i + 3].toString()) : null,
                     pe_max: null,
                     pw_max: null,
+                    pr_max: null,
+                    project_max: null,
+                    viva_max: null,
+                    pl_max: null,
                   };
                   subjects.push(subject);
                 } else if (subjectType === "practical") {
@@ -545,6 +581,14 @@ const Courses: React.FC = () => {
                     ce_max: null,
                     pe_max: row[i + 4] ? parseInt(row[i + 4].toString()) : null,
                     pw_max: row[i + 5] ? parseInt(row[i + 5].toString()) : null,
+                    pr_max: row[i + 6] ? parseInt(row[i + 6].toString()) : null,
+                    project_max: row[i + 7]
+                      ? parseInt(row[i + 7].toString())
+                      : null,
+                    viva_max: row[i + 8]
+                      ? parseInt(row[i + 8].toString())
+                      : null,
+                    pl_max: row[i + 9] ? parseInt(row[i + 9].toString()) : null,
                   };
                   subjects.push(subject);
                 }
@@ -604,13 +648,13 @@ const Courses: React.FC = () => {
 
           if (!hasTheory && !hasPractical) {
             errors.push(
-              `Subject "${subject.name}" must have either theory or practical marks`
+              `Subject "${subject.name}" must have either theory or practical marks`,
             );
           }
 
           if (hasTheory && hasPractical) {
             errors.push(
-              `Subject "${subject.name}" cannot have both theory and practical marks`
+              `Subject "${subject.name}" cannot have both theory and practical marks`,
             );
           }
         });
@@ -619,7 +663,7 @@ const Courses: React.FC = () => {
       // Check for duplicate course names
       const duplicateIndex = data.findIndex(
         (c, i) =>
-          i !== index && c.name.toLowerCase() === course.name.toLowerCase()
+          i !== index && c.name.toLowerCase() === course.name.toLowerCase(),
       );
       if (duplicateIndex !== -1) {
         errors.push(`Duplicate course name found in row ${duplicateIndex + 2}`);
@@ -629,11 +673,11 @@ const Courses: React.FC = () => {
       const duplicateCodeIndex = data.findIndex(
         (c, i) =>
           i !== index &&
-          c.short_code.toLowerCase() === course.short_code.toLowerCase()
+          c.short_code.toLowerCase() === course.short_code.toLowerCase(),
       );
       if (duplicateCodeIndex !== -1) {
         errors.push(
-          `Duplicate short code found in row ${duplicateCodeIndex + 2}`
+          `Duplicate short code found in row ${duplicateCodeIndex + 2}`,
         );
       }
 
@@ -726,18 +770,30 @@ const Courses: React.FC = () => {
         "CE Max 1",
         "PE Max 1",
         "PW Max 1",
+        "PR Max 1",
+        "Proj Max 1",
+        "Viva Max 1",
+        "PL Max 1",
         "Subject 2",
         "Type 2",
         "TE Max 2",
         "CE Max 2",
         "PE Max 2",
         "PW Max 2",
+        "PR Max 2",
+        "Proj Max 2",
+        "Viva Max 2",
+        "PL Max 2",
         "Subject 3",
         "Type 3",
         "TE Max 3",
         "CE Max 3",
         "PE Max 3",
         "PW Max 3",
+        "PR Max 3",
+        "Proj Max 3",
+        "Viva Max 3",
+        "PL Max 3",
       ],
       [
         "Computer Science",
@@ -768,6 +824,10 @@ const Courses: React.FC = () => {
         "",
         "",
         "theory or practical",
+        "Numbers only",
+        "Numbers only",
+        "Numbers only",
+        "Numbers only",
         "Numbers only",
         "Numbers only",
         "Numbers only",
@@ -805,18 +865,30 @@ const Courses: React.FC = () => {
         "CE Max 1",
         "PE Max 1",
         "PW Max 1",
+        "PR Max 1",
+        "Proj Max 1",
+        "Viva Max 1",
+        "PL Max 1",
         "Subject 2",
         "Type 2",
         "TE Max 2",
         "CE Max 2",
         "PE Max 2",
         "PW Max 2",
+        "PR Max 2",
+        "Proj Max 2",
+        "Viva Max 2",
+        "PL Max 2",
         "Subject 3",
         "Type 3",
         "TE Max 3",
         "CE Max 3",
         "PE Max 3",
         "PW Max 3",
+        "PR Max 3",
+        "Proj Max 3",
+        "Viva Max 3",
+        "PL Max 3",
       ],
       [
         "Computer Science",
@@ -905,7 +977,7 @@ const Courses: React.FC = () => {
 
   const selectAllForDelete = () => {
     setSelectedCoursesForDelete(
-      new Set(paginatedCourses.map((course) => course.id!))
+      new Set(paginatedCourses.map((course) => course.id!)),
     );
   };
 
@@ -938,7 +1010,7 @@ const Courses: React.FC = () => {
     };
 
     const selectedCourses = courses.filter((course) =>
-      selectedCoursesForDelete.has(course.id!)
+      selectedCoursesForDelete.has(course.id!),
     );
 
     for (let i = 0; i < selectedCourses.length; i++) {
@@ -995,7 +1067,7 @@ const Courses: React.FC = () => {
 
   const selectAllForExport = () => {
     setSelectedCoursesForExport(
-      new Set(paginatedCourses.map((course) => course.id!))
+      new Set(paginatedCourses.map((course) => course.id!)),
     );
   };
 
@@ -1016,7 +1088,7 @@ const Courses: React.FC = () => {
     setIsExporting(true);
     try {
       const selectedCourses = courses.filter((course) =>
-        selectedCoursesForExport.has(course.id!)
+        selectedCoursesForExport.has(course.id!),
       );
 
       // Create Excel data
@@ -1043,7 +1115,7 @@ const Courses: React.FC = () => {
       XLSX.utils.book_append_sheet(wb, ws, "Courses");
       XLSX.writeFile(
         wb,
-        `courses_export_${new Date().toISOString().split("T")[0]}.xlsx`
+        `courses_export_${new Date().toISOString().split("T")[0]}.xlsx`,
       );
 
       toast({
@@ -1158,7 +1230,7 @@ const Courses: React.FC = () => {
                   <p className="text-2xl font-bold">
                     {courses.reduce(
                       (sum, course) => sum + course.subjects.length,
-                      0
+                      0,
                     )}
                   </p>
                   <p className="text-xs text-muted-foreground">
@@ -1188,8 +1260,8 @@ const Courses: React.FC = () => {
                             .filter((c) => c.duration_months)
                             .reduce(
                               (sum, c) => sum + (c.duration_months || 0),
-                              0
-                            ) / courses.filter((c) => c.duration_months).length
+                              0,
+                            ) / courses.filter((c) => c.duration_months).length,
                         )
                       : 0}
                   </p>
@@ -1390,7 +1462,7 @@ const Courses: React.FC = () => {
                       );
                     }
                     return null;
-                  }
+                  },
                 )}
               </div>
 
@@ -1615,7 +1687,7 @@ const Courses: React.FC = () => {
                                         "te_max",
                                         e.target.value
                                           ? parseInt(e.target.value)
-                                          : null
+                                          : null,
                                       )
                                     }
                                     placeholder="0"
@@ -1639,7 +1711,7 @@ const Courses: React.FC = () => {
                                         "ce_max",
                                         e.target.value
                                           ? parseInt(e.target.value)
-                                          : null
+                                          : null,
                                       )
                                     }
                                     placeholder="0"
@@ -1672,7 +1744,7 @@ const Courses: React.FC = () => {
                                         "pe_max",
                                         e.target.value
                                           ? parseInt(e.target.value)
-                                          : null
+                                          : null,
                                       )
                                     }
                                     placeholder="0"
@@ -1696,7 +1768,103 @@ const Courses: React.FC = () => {
                                         "pw_max",
                                         e.target.value
                                           ? parseInt(e.target.value)
-                                          : null
+                                          : null,
+                                      )
+                                    }
+                                    placeholder="0"
+                                    className="text-xs sm:text-sm"
+                                  />
+                                </div>
+                                <div>
+                                  <Label
+                                    htmlFor={`pr_max_${index}`}
+                                    className="text-xs"
+                                  >
+                                    P.R Max
+                                  </Label>
+                                  <Input
+                                    id={`pr_max_${index}`}
+                                    type="number"
+                                    value={subject.pr_max || ""}
+                                    onChange={(e) =>
+                                      updateSubject(
+                                        index,
+                                        "pr_max",
+                                        e.target.value
+                                          ? parseInt(e.target.value)
+                                          : null,
+                                      )
+                                    }
+                                    placeholder="0"
+                                    className="text-xs sm:text-sm"
+                                  />
+                                </div>
+                                <div>
+                                  <Label
+                                    htmlFor={`project_max_${index}`}
+                                    className="text-xs"
+                                  >
+                                    Proj Max
+                                  </Label>
+                                  <Input
+                                    id={`project_max_${index}`}
+                                    type="number"
+                                    value={subject.project_max || ""}
+                                    onChange={(e) =>
+                                      updateSubject(
+                                        index,
+                                        "project_max",
+                                        e.target.value
+                                          ? parseInt(e.target.value)
+                                          : null,
+                                      )
+                                    }
+                                    placeholder="0"
+                                    className="text-xs sm:text-sm"
+                                  />
+                                </div>
+                                <div>
+                                  <Label
+                                    htmlFor={`viva_max_${index}`}
+                                    className="text-xs"
+                                  >
+                                    Viva Max
+                                  </Label>
+                                  <Input
+                                    id={`viva_max_${index}`}
+                                    type="number"
+                                    value={subject.viva_max || ""}
+                                    onChange={(e) =>
+                                      updateSubject(
+                                        index,
+                                        "viva_max",
+                                        e.target.value
+                                          ? parseInt(e.target.value)
+                                          : null,
+                                      )
+                                    }
+                                    placeholder="0"
+                                    className="text-xs sm:text-sm"
+                                  />
+                                </div>
+                                <div>
+                                  <Label
+                                    htmlFor={`pl_max_${index}`}
+                                    className="text-xs"
+                                  >
+                                    PL Max
+                                  </Label>
+                                  <Input
+                                    id={`pl_max_${index}`}
+                                    type="number"
+                                    value={subject.pl_max || ""}
+                                    onChange={(e) =>
+                                      updateSubject(
+                                        index,
+                                        "pl_max",
+                                        e.target.value
+                                          ? parseInt(e.target.value)
+                                          : null,
                                       )
                                     }
                                     placeholder="0"

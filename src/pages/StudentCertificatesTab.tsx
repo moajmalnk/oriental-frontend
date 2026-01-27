@@ -60,7 +60,7 @@ const StudentCertificatesTab: React.FC = () => {
     (result) =>
       result.result === "Pass" ||
       result.result === "PASS" ||
-      result.result === "pass"
+      result.result === "pass",
   );
 
   // If no passed results, show message
@@ -139,7 +139,13 @@ const StudentCertificatesTab: React.FC = () => {
             // Calculate practical total if not provided
             const practicalTotal =
               mark.practical_total ??
-              ((mark.pe_obtained ?? 0) + (mark.pw_obtained ?? 0) || null);
+              ((mark.pe_obtained ?? 0) +
+                (mark.pw_obtained ?? 0) +
+                (mark.pr_obtained ?? 0) +
+                (mark.project_obtained ?? 0) +
+                (mark.viva_obtained ?? 0) +
+                (mark.pl_obtained ?? 0) ||
+                null);
 
             // Calculate overall obtained if not provided
             const overallObtained =
@@ -153,7 +159,13 @@ const StudentCertificatesTab: React.FC = () => {
 
             const practicalTotalMax =
               subjectInfo?.practical_total ??
-              ((subjectInfo?.pe_max ?? 0) + (subjectInfo?.pw_max ?? 0) || null);
+              ((subjectInfo?.pe_max ?? 0) +
+                (subjectInfo?.pw_max ?? 0) +
+                (subjectInfo?.pr_max ?? 0) +
+                (subjectInfo?.project_max ?? 0) +
+                (subjectInfo?.viva_max ?? 0) +
+                (subjectInfo?.pl_max ?? 0) ||
+                null);
 
             const overallTotalMax =
               subjectInfo?.overall_total ??
@@ -166,11 +178,20 @@ const StudentCertificatesTab: React.FC = () => {
               CE: mark.ce_obtained,
               PE: mark.pe_obtained,
               PW: mark.pw_obtained,
+              PR: mark.pr_obtained,
+              Project: mark.project_obtained,
+              Viva: mark.viva_obtained,
+              PL: mark.pl_obtained,
               TheoryTotal: theoryTotal,
               PracticalTotal: practicalTotal,
               OverallObtained: overallObtained,
               SubjectType:
-                mark.pe_obtained != null || mark.pw_obtained != null
+                mark.pe_obtained != null ||
+                mark.pw_obtained != null ||
+                mark.pr_obtained != null ||
+                mark.project_obtained != null ||
+                mark.viva_obtained != null ||
+                mark.pl_obtained != null
                   ? "Practical"
                   : "Theory",
               // Maximum scores from subject configuration
@@ -178,6 +199,10 @@ const StudentCertificatesTab: React.FC = () => {
               CE_Max: subjectInfo?.ce_max,
               PE_Max: subjectInfo?.pe_max,
               PW_Max: subjectInfo?.pw_max,
+              PR_Max: subjectInfo?.pr_max,
+              Project_Max: subjectInfo?.project_max,
+              Viva_Max: subjectInfo?.viva_max,
+              PL_Max: subjectInfo?.pl_max,
               TheoryTotal_Max: theoryTotalMax,
               PracticalTotal_Max: practicalTotalMax,
               OverallTotal_Max: overallTotalMax,
@@ -329,8 +354,8 @@ const StudentCertificatesTab: React.FC = () => {
                         Certificate Preview Available
                       </h3>
                       <p className="text-muted-foreground leading-relaxed mb-4">
-                        To view the certificate preview, please switch to desktop
-                        view (full screen) for the best experience.
+                        To view the certificate preview, please switch to
+                        desktop view (full screen) for the best experience.
                       </p>
                       <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
                         <div className="w-2 h-2 bg-blue-500 rounded-full"></div>

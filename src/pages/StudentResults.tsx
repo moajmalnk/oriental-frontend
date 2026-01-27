@@ -145,7 +145,7 @@ const excelSerialToYYYYMMDD = (serial: number): string => {
 
   return `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(
     2,
-    "0"
+    "0",
   )}`;
 };
 
@@ -154,7 +154,7 @@ const excelSerialToYYYYMMDD = (serial: number): string => {
  * correctly handling strings, Date objects, and Excel serial numbers.
  */
 const parseDateToYYYYMMDD = (
-  dateInput: string | Date | number | null | undefined
+  dateInput: string | Date | number | null | undefined,
 ): string | null => {
   if (!dateInput) {
     return null;
@@ -172,7 +172,7 @@ const parseDateToYYYYMMDD = (
     const day = dateInput.getDate();
     return `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(
       2,
-      "0"
+      "0",
     )}`;
   }
 
@@ -215,7 +215,7 @@ const parseDateToYYYYMMDD = (
     if (!isNaN(date.getTime()) && date.getDate() === day) {
       return `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(
         2,
-        "0"
+        "0",
       )}`;
     }
   }
@@ -230,7 +230,7 @@ const parseDateToYYYYMMDD = (
     if (!isNaN(date.getTime()) && date.getDate() === day) {
       return `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(
         2,
-        "0"
+        "0",
       )}`;
     }
   }
@@ -245,7 +245,7 @@ const parseDateToYYYYMMDD = (
     if (!isNaN(date.getTime()) && date.getDate() === day) {
       return `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(
         2,
-        "0"
+        "0",
       )}`;
     }
   }
@@ -260,7 +260,7 @@ const parseDateToYYYYMMDD = (
       const day = date.getDate();
       return `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(
         2,
-        "0"
+        "0",
       )}`;
     }
   } catch (error) {
@@ -300,10 +300,10 @@ const StudentResults: React.FC = () => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [editingResult, setEditingResult] = useState<StudentResult | null>(
-    null
+    null,
   );
   const [resultToDelete, setResultToDelete] = useState<StudentResult | null>(
-    null
+    null,
   );
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -343,7 +343,7 @@ const StudentResults: React.FC = () => {
   const [isBulkUpdateImportDialogOpen, setIsBulkUpdateImportDialogOpen] =
     useState(false);
   const [bulkUpdateData, setBulkUpdateData] = useState<BulkStudentResultData[]>(
-    []
+    [],
   );
   const [bulkUpdateValidations, setBulkUpdateValidations] = useState<
     BulkStudentResultValidation[]
@@ -404,7 +404,7 @@ const StudentResults: React.FC = () => {
 
       // Set total statistics from API (always total DB counts)
       setTotalResults(
-        resultsResponse.data.total_results || resultsResponse.data.count
+        resultsResponse.data.total_results || resultsResponse.data.count,
       );
       setTotalPublished(resultsResponse.data.total_published || 0);
       setTotalPass(resultsResponse.data.total_pass || 0);
@@ -451,14 +451,14 @@ const StudentResults: React.FC = () => {
     // Apply batch filter
     if (selectedBatch !== "all") {
       filtered = filtered.filter(
-        (result) => result.batch === parseInt(selectedBatch)
+        (result) => result.batch === parseInt(selectedBatch),
       );
     }
 
     // Apply course filter
     if (selectedCourse !== "all") {
       filtered = filtered.filter(
-        (result) => result.course === parseInt(selectedCourse)
+        (result) => result.course === parseInt(selectedCourse),
       );
     }
 
@@ -466,19 +466,19 @@ const StudentResults: React.FC = () => {
     if (selectedResult !== "all") {
       if (selectedResult === "pass") {
         filtered = filtered.filter(
-          (result) => result.result?.toLowerCase() === "pass"
+          (result) => result.result?.toLowerCase() === "pass",
         );
       } else if (selectedResult === "fail") {
         filtered = filtered.filter(
-          (result) => result.result?.toLowerCase() === "fail"
+          (result) => result.result?.toLowerCase() === "fail",
         );
       } else if (selectedResult === "distinction") {
         filtered = filtered.filter(
-          (result) => result.result?.toLowerCase() === "distinction"
+          (result) => result.result?.toLowerCase() === "distinction",
         );
       } else if (selectedResult === "absent") {
         filtered = filtered.filter(
-          (result) => result.result?.toLowerCase() === "absent"
+          (result) => result.result?.toLowerCase() === "absent",
         );
       }
     }
@@ -588,7 +588,7 @@ const StudentResults: React.FC = () => {
   // Add mark for a subject
   const addMark = (subjectId: number, subjectName: string) => {
     const existingMark = formData.marks.find(
-      (mark) => mark.subject === subjectId
+      (mark) => mark.subject === subjectId,
     );
     if (!existingMark) {
       const newMark: StudentMark = {
@@ -598,6 +598,10 @@ const StudentResults: React.FC = () => {
         ce_obtained: null,
         pe_obtained: null,
         pw_obtained: null,
+        pr_obtained: null,
+        project_obtained: null,
+        viva_obtained: null,
+        pl_obtained: null,
       };
       setFormData({
         ...formData,
@@ -610,13 +614,13 @@ const StudentResults: React.FC = () => {
   const updateMark = (
     subjectId: number,
     field: keyof StudentMark,
-    value: number | null
+    value: number | null,
   ) => {
     // Ensure value is not negative
     const validatedValue = value !== null && value < 0 ? 0 : value;
 
     const updatedMarks = formData.marks.map((mark) =>
-      mark.subject === subjectId ? { ...mark, [field]: validatedValue } : mark
+      mark.subject === subjectId ? { ...mark, [field]: validatedValue } : mark,
     );
     setFormData({ ...formData, marks: updatedMarks });
   };
@@ -624,7 +628,7 @@ const StudentResults: React.FC = () => {
   // Remove mark
   const removeMark = (subjectId: number) => {
     const updatedMarks = formData.marks.filter(
-      (mark) => mark.subject !== subjectId
+      (mark) => mark.subject !== subjectId,
     );
     setFormData({ ...formData, marks: updatedMarks });
   };
@@ -658,7 +662,7 @@ const StudentResults: React.FC = () => {
       const existingResult = studentResults.find(
         (result) =>
           result.student === formData.student &&
-          result.course === formData.course
+          result.course === formData.course,
       );
       if (existingResult) {
         const studentName =
@@ -678,16 +682,20 @@ const StudentResults: React.FC = () => {
         const hasTheory =
           mark.te_obtained !== null || mark.ce_obtained !== null;
         const hasPractical =
-          mark.pe_obtained !== null || mark.pw_obtained !== null;
+          mark.pe_obtained !== null ||
+          mark.pw_obtained !== null ||
+          mark.pr_obtained !== null ||
+          mark.project_obtained !== null ||
+          mark.viva_obtained !== null ||
+          mark.pl_obtained !== null;
 
         if (!hasTheory && !hasPractical) {
-          newErrors[`marks_${index}`] =
-            "At least one mark (TE, CE, PE, or PW) is required";
+          newErrors[`marks_${index}`] = "At least one mark is required";
         }
 
         if (hasTheory && hasPractical) {
           newErrors[`marks_${index}`] =
-            "Cannot mix theory marks (TE/CE) with practical marks (PE/PW)";
+            "Cannot mix theory marks marks with practical marks";
         }
       });
     }
@@ -719,6 +727,10 @@ const StudentResults: React.FC = () => {
           ce_obtained: mark.ce_obtained,
           pe_obtained: mark.pe_obtained,
           pw_obtained: mark.pw_obtained,
+          pr_obtained: mark.pr_obtained,
+          project_obtained: mark.project_obtained,
+          viva_obtained: mark.viva_obtained,
+          pl_obtained: mark.pl_obtained,
         })),
         is_published: formData.is_published || false,
         published_date: formData.published_date || null,
@@ -727,7 +739,7 @@ const StudentResults: React.FC = () => {
       if (editingResult) {
         await api.put(
           `/api/students/student-results/update/${editingResult.id}/`,
-          payload
+          payload,
         );
         toast({
           title: "Success",
@@ -768,7 +780,7 @@ const StudentResults: React.FC = () => {
     try {
       setIsDeleting(true);
       await api.delete(
-        `/api/students/student-results/delete/${resultToDelete.id}/`
+        `/api/students/student-results/delete/${resultToDelete.id}/`,
       );
       toast({
         title: "Success",
@@ -940,7 +952,7 @@ const StudentResults: React.FC = () => {
           errors.push("Student name is required");
         } else {
           const student = students.find(
-            (s) => s.name.toLowerCase() === result.student_name.toLowerCase()
+            (s) => s.name.toLowerCase() === result.student_name.toLowerCase(),
           );
           if (!student) {
             errors.push(`Student "${result.student_name}" not found`);
@@ -954,7 +966,7 @@ const StudentResults: React.FC = () => {
           errors.push("Course name is required");
         } else {
           const course = courses.find(
-            (c) => c.name.toLowerCase() === result.course_name.toLowerCase()
+            (c) => c.name.toLowerCase() === result.course_name.toLowerCase(),
           );
           if (!course) {
             errors.push(`Course "${result.course_name}" not found`);
@@ -968,7 +980,7 @@ const StudentResults: React.FC = () => {
           errors.push("Batch name is required");
         } else {
           const batch = batches.find(
-            (b) => b.name.toLowerCase() === result.batch_name.toLowerCase()
+            (b) => b.name.toLowerCase() === result.batch_name.toLowerCase(),
           );
           if (!batch) {
             errors.push(`Batch "${result.batch_name}" not found`);
@@ -976,7 +988,7 @@ const StudentResults: React.FC = () => {
             // Check if batch belongs to the course
             if (result.course_id && batch.course !== result.course_id) {
               errors.push(
-                `Batch "${result.batch_name}" does not belong to course "${result.course_name}"`
+                `Batch "${result.batch_name}" does not belong to course "${result.course_name}"`,
               );
             } else {
               result.batch_id = batch.id;
@@ -999,11 +1011,11 @@ const StudentResults: React.FC = () => {
           const existingResult = studentResults.find(
             (existing) =>
               existing.student === result.student_id &&
-              existing.course === result.course_id
+              existing.course === result.course_id,
           );
           if (existingResult) {
             errors.push(
-              `Student "${result.student_name}" already has a result for course "${result.course_name}". A student can only have one result per course.`
+              `Student "${result.student_name}" already has a result for course "${result.course_name}". A student can only have one result per course.`,
             );
           }
         }
@@ -1012,7 +1024,7 @@ const StudentResults: React.FC = () => {
         if (result.marks && result.marks.length > 0 && result.course_id) {
           try {
             const response = await api.get(
-              `/api/course/subjects/${result.course_id}/`
+              `/api/course/subjects/${result.course_id}/`,
             );
             const courseSubjects = response.data;
 
@@ -1022,11 +1034,11 @@ const StudentResults: React.FC = () => {
               } else {
                 const subject = courseSubjects.find(
                   (s: any) =>
-                    s.name.toLowerCase() === mark.subject_name.toLowerCase()
+                    s.name.toLowerCase() === mark.subject_name.toLowerCase(),
                 );
                 if (!subject) {
                   errors.push(
-                    `Subject "${mark.subject_name}" not found for course "${result.course_name}"`
+                    `Subject "${mark.subject_name}" not found for course "${result.course_name}"`,
                   );
                 } else {
                   // Validate mark fields based on subject type
@@ -1037,13 +1049,13 @@ const StudentResults: React.FC = () => {
 
                   if (!hasTheory && !hasPractical) {
                     errors.push(
-                      `At least one mark is required for subject "${mark.subject_name}"`
+                      `At least one mark is required for subject "${mark.subject_name}"`,
                     );
                   }
 
                   if (hasTheory && hasPractical) {
                     errors.push(
-                      `Cannot mix theory and practical marks for subject "${mark.subject_name}"`
+                      `Cannot mix theory and practical marks for subject "${mark.subject_name}"`,
                     );
                   }
 
@@ -1057,7 +1069,7 @@ const StudentResults: React.FC = () => {
             }
           } catch (error) {
             errors.push(
-              `Failed to fetch subjects for course "${result.course_name}"`
+              `Failed to fetch subjects for course "${result.course_name}"`,
             );
           }
         } else if (result.course_id) {
@@ -1069,13 +1081,13 @@ const StudentResults: React.FC = () => {
           (r, i) =>
             i !== index &&
             r.register_number.toLowerCase() ===
-              result.register_number.toLowerCase()
+              result.register_number.toLowerCase(),
         );
         if (duplicateRegisterIndex !== -1) {
           errors.push(
             `Duplicate register number found in row ${
               duplicateRegisterIndex + 2
-            }`
+            }`,
           );
         }
 
@@ -1084,7 +1096,7 @@ const StudentResults: React.FC = () => {
           (r, i) =>
             i !== index &&
             r.student_id === result.student_id &&
-            r.course_id === result.course_id
+            r.course_id === result.course_id,
         );
         if (duplicateCourseIndex !== -1) {
           errors.push(
@@ -1094,7 +1106,7 @@ const StudentResults: React.FC = () => {
               result.student_name
             }" already has a result for course "${
               result.course_name
-            }" in this import.`
+            }" in this import.`,
           );
         }
 
@@ -1104,7 +1116,7 @@ const StudentResults: React.FC = () => {
           errors,
           isValid: errors.length === 0,
         };
-      })
+      }),
     );
 
     setBulkValidations(validations);
@@ -1122,7 +1134,7 @@ const StudentResults: React.FC = () => {
           errors.push("Student name is required");
         } else {
           const student = students.find(
-            (s) => s.name.toLowerCase() === result.student_name.toLowerCase()
+            (s) => s.name.toLowerCase() === result.student_name.toLowerCase(),
           );
           if (!student) {
             errors.push(`Student "${result.student_name}" not found`);
@@ -1136,7 +1148,7 @@ const StudentResults: React.FC = () => {
           errors.push("Course name is required");
         } else {
           const course = courses.find(
-            (c) => c.name.toLowerCase() === result.course_name.toLowerCase()
+            (c) => c.name.toLowerCase() === result.course_name.toLowerCase(),
           );
           if (!course) {
             errors.push(`Course "${result.course_name}" not found`);
@@ -1150,7 +1162,7 @@ const StudentResults: React.FC = () => {
           errors.push("Batch name is required");
         } else {
           const batch = batches.find(
-            (b) => b.name.toLowerCase() === result.batch_name.toLowerCase()
+            (b) => b.name.toLowerCase() === result.batch_name.toLowerCase(),
           );
           if (!batch) {
             errors.push(`Batch "${result.batch_name}" not found`);
@@ -1158,7 +1170,7 @@ const StudentResults: React.FC = () => {
             // Check if batch belongs to the course
             if (result.course_id && batch.course !== result.course_id) {
               errors.push(
-                `Batch "${result.batch_name}" does not belong to course "${result.course_name}"`
+                `Batch "${result.batch_name}" does not belong to course "${result.course_name}"`,
               );
             } else {
               result.batch_id = batch.id;
@@ -1181,11 +1193,11 @@ const StudentResults: React.FC = () => {
           const existingResult = studentResults.find(
             (existing) =>
               existing.register_number.toLowerCase() ===
-              result.register_number.toLowerCase()
+              result.register_number.toLowerCase(),
           );
           if (!existingResult) {
             errors.push(
-              `No existing result found with register number "${result.register_number}". Please ensure this is an update of an existing result.`
+              `No existing result found with register number "${result.register_number}". Please ensure this is an update of an existing result.`,
             );
           }
         }
@@ -1194,7 +1206,7 @@ const StudentResults: React.FC = () => {
         if (result.marks && result.marks.length > 0 && result.course_id) {
           try {
             const response = await api.get(
-              `/api/course/subjects/${result.course_id}/`
+              `/api/course/subjects/${result.course_id}/`,
             );
             const courseSubjects = response.data;
 
@@ -1204,11 +1216,11 @@ const StudentResults: React.FC = () => {
               } else {
                 const subject = courseSubjects.find(
                   (s: any) =>
-                    s.name.toLowerCase() === mark.subject_name.toLowerCase()
+                    s.name.toLowerCase() === mark.subject_name.toLowerCase(),
                 );
                 if (!subject) {
                   errors.push(
-                    `Subject "${mark.subject_name}" not found for course "${result.course_name}"`
+                    `Subject "${mark.subject_name}" not found for course "${result.course_name}"`,
                   );
                 } else {
                   // Validate mark fields based on subject type
@@ -1219,13 +1231,13 @@ const StudentResults: React.FC = () => {
 
                   if (!hasTheory && !hasPractical) {
                     errors.push(
-                      `At least one mark is required for subject "${mark.subject_name}"`
+                      `At least one mark is required for subject "${mark.subject_name}"`,
                     );
                   }
 
                   if (hasTheory && hasPractical) {
                     errors.push(
-                      `Cannot mix theory and practical marks for subject "${mark.subject_name}"`
+                      `Cannot mix theory and practical marks for subject "${mark.subject_name}"`,
                     );
                   }
 
@@ -1239,7 +1251,7 @@ const StudentResults: React.FC = () => {
             }
           } catch (error) {
             errors.push(
-              `Failed to fetch subjects for course "${result.course_name}"`
+              `Failed to fetch subjects for course "${result.course_name}"`,
             );
           }
         } else if (result.course_id) {
@@ -1251,13 +1263,13 @@ const StudentResults: React.FC = () => {
           (r, i) =>
             i !== index &&
             r.register_number.toLowerCase() ===
-              result.register_number.toLowerCase()
+              result.register_number.toLowerCase(),
         );
         if (duplicateRegisterIndex !== -1) {
           errors.push(
             `Duplicate register number found in row ${
               duplicateRegisterIndex + 2
-            }`
+            }`,
           );
         }
 
@@ -1267,7 +1279,7 @@ const StudentResults: React.FC = () => {
           errors,
           isValid: errors.length === 0,
         };
-      })
+      }),
     );
 
     setBulkUpdateValidations(validations);
@@ -1307,7 +1319,7 @@ const StudentResults: React.FC = () => {
           "Available keys in subject_ids:",
           validation.data.subject_ids
             ? Object.keys(validation.data.subject_ids)
-            : "none"
+            : "none",
         );
         console.log("Marks:", validation.data.marks);
 
@@ -1320,7 +1332,7 @@ const StudentResults: React.FC = () => {
           if (!subjectId && validation.data.subject_ids) {
             const keys = Object.keys(validation.data.subject_ids);
             const matchedKey = keys.find(
-              (key) => key.toLowerCase() === mark.subject_name.toLowerCase()
+              (key) => key.toLowerCase() === mark.subject_name.toLowerCase(),
             );
             if (matchedKey) {
               subjectId = validation.data.subject_ids[matchedKey];
@@ -1334,11 +1346,11 @@ const StudentResults: React.FC = () => {
             throw new Error(
               `Subject ID not found for "${
                 mark.subject_name
-              }". Available keys: ${availableKeys.join(", ")}`
+              }". Available keys: ${availableKeys.join(", ")}`,
             );
           }
           console.log(
-            `Mapping subject "${mark.subject_name}" to ID: ${subjectId}`
+            `Mapping subject "${mark.subject_name}" to ID: ${subjectId}`,
           );
           return {
             subject: subjectId,
@@ -1352,7 +1364,7 @@ const StudentResults: React.FC = () => {
           "RAW DATE VALUE:",
           validation.data.published_date,
           "TYPE:",
-          typeof validation.data.published_date
+          typeof validation.data.published_date,
         );
         // Format published_date properly (YYYY-MM-DD format or null)
         // Use the utility function to parse various date formats
@@ -1380,7 +1392,7 @@ const StudentResults: React.FC = () => {
         console.error(
           "Error creating result for:",
           validation.data.register_number,
-          error
+          error,
         );
         result.failed++;
         const errorMessage = error.response?.data
@@ -1445,7 +1457,8 @@ const StudentResults: React.FC = () => {
       try {
         // Find existing result by register number
         const existingResult = studentResults.find(
-          (result) => result.register_number === validation.data.register_number
+          (result) =>
+            result.register_number === validation.data.register_number,
         );
 
         if (!existingResult) {
@@ -1467,7 +1480,7 @@ const StudentResults: React.FC = () => {
           if (!subjectId && validation.data.subject_ids) {
             const keys = Object.keys(validation.data.subject_ids);
             const matchedKey = keys.find(
-              (key) => key.toLowerCase() === mark.subject_name.toLowerCase()
+              (key) => key.toLowerCase() === mark.subject_name.toLowerCase(),
             );
             if (matchedKey) {
               subjectId = validation.data.subject_ids[matchedKey];
@@ -1481,7 +1494,7 @@ const StudentResults: React.FC = () => {
             throw new Error(
               `Subject ID not found for "${
                 mark.subject_name
-              }". Available keys: ${availableKeys.join(", ")}`
+              }". Available keys: ${availableKeys.join(", ")}`,
             );
           }
           return {
@@ -1506,14 +1519,14 @@ const StudentResults: React.FC = () => {
 
         await api.put(
           `/api/students/student-results/update/${existingResult.id}/`,
-          payload
+          payload,
         );
         result.success++;
       } catch (error: any) {
         console.error(
           "Error updating result for:",
           validation.data.register_number,
-          error
+          error,
         );
         result.failed++;
         const errorMessage = error.response?.data
@@ -1614,9 +1627,9 @@ const StudentResults: React.FC = () => {
             }> = [];
 
             // Parse marks - new format: Subject 1, Type 1, TE Obtained 1, CE Obtained 1, PE Obtained 1, PW Obtained 1, Subject 2, Type 2, ...
-            // Each subject group takes 6 columns: Subject Name, Type, TE Obtained, CE Obtained, PE Obtained, PW Obtained
+            // Each subject group takes 10 columns: Subject Name, Type, TE, CE, PE, PW, PR, Project, Viva, PL
             // Start from column 8 (index 8) since we added is_published at column 6 and published_date at column 7
-            for (let i = 8; i < row.length; i += 6) {
+            for (let i = 8; i < row.length; i += 10) {
               if (row[i] && row[i].toString().trim()) {
                 const subjectName = row[i].toString().trim();
                 const subjectType = row[i + 1]?.toString().trim().toLowerCase();
@@ -1635,6 +1648,18 @@ const StudentResults: React.FC = () => {
                     : null,
                   pw_obtained: row[i + 5]
                     ? parseInt(row[i + 5].toString())
+                    : null,
+                  pr_obtained: row[i + 6]
+                    ? parseInt(row[i + 6].toString())
+                    : null,
+                  project_obtained: row[i + 7]
+                    ? parseInt(row[i + 7].toString())
+                    : null,
+                  viva_obtained: row[i + 8]
+                    ? parseInt(row[i + 8].toString())
+                    : null,
+                  pl_obtained: row[i + 9]
+                    ? parseInt(row[i + 9].toString())
                     : null,
                 };
 
@@ -1700,7 +1725,7 @@ const StudentResults: React.FC = () => {
 
   const selectAllForDelete = () => {
     setSelectedResultsForDelete(
-      new Set(filteredResults.map((result) => result.id!))
+      new Set(filteredResults.map((result) => result.id!)),
     );
   };
 
@@ -1733,7 +1758,7 @@ const StudentResults: React.FC = () => {
     };
 
     const selectedResults = studentResults.filter((result) =>
-      selectedResultsForDelete.has(result.id!)
+      selectedResultsForDelete.has(result.id!),
     );
 
     for (let i = 0; i < selectedResults.length; i++) {
@@ -1743,7 +1768,7 @@ const StudentResults: React.FC = () => {
 
       try {
         await api.delete(
-          `/api/students/student-results/delete/${studentResult.id}/`
+          `/api/students/student-results/delete/${studentResult.id}/`,
         );
         result.success++;
       } catch (error: any) {
@@ -1794,18 +1819,31 @@ const StudentResults: React.FC = () => {
         "CE Obtained 1",
         "PE Obtained 1",
         "PW Obtained 1",
+        "PR Obtained 1",
+        "Project Obtained 1",
+        "Viva Obtained 1",
+        "PL Obtained 1",
+
         "Subject 2",
         "Type 2",
         "TE Obtained 2",
         "CE Obtained 2",
         "PE Obtained 2",
         "PW Obtained 2",
+        "PR Obtained 2",
+        "Project Obtained 2",
+        "Viva Obtained 2",
+        "PL Obtained 2",
         "Subject 3",
         "Type 3",
         "TE Obtained 3",
         "CE Obtained 3",
         "PE Obtained 3",
         "PW Obtained 3",
+        "PR Obtained 3",
+        "Project Obtained 3",
+        "Viva Obtained 3",
+        "PL Obtained 3",
       ],
       [
         "John Doe",
@@ -1998,7 +2036,7 @@ const StudentResults: React.FC = () => {
 
   const selectAllResults = () => {
     setSelectedResultsForExport(
-      new Set(filteredResults.map((result) => result.id!))
+      new Set(filteredResults.map((result) => result.id!)),
     );
   };
 
@@ -2019,7 +2057,7 @@ const StudentResults: React.FC = () => {
     setIsExporting(true);
     try {
       const selectedResults = studentResults.filter((result) =>
-        selectedResultsForExport.has(result.id!)
+        selectedResultsForExport.has(result.id!),
       );
 
       // Create Excel data using the same template structure as bulk import
@@ -2080,7 +2118,7 @@ const StudentResults: React.FC = () => {
                 mark.te_obtained?.toString() || "",
                 mark.ce_obtained?.toString() || "",
                 mark.pe_obtained?.toString() || "",
-                mark.pw_obtained?.toString() || ""
+                mark.pw_obtained?.toString() || "",
               );
             }
           });
@@ -2107,7 +2145,7 @@ const StudentResults: React.FC = () => {
       XLSX.utils.book_append_sheet(wb, ws, "Student Results");
       XLSX.writeFile(
         wb,
-        `student_results_export_${new Date().toISOString().split("T")[0]}.xlsx`
+        `student_results_export_${new Date().toISOString().split("T")[0]}.xlsx`,
       );
 
       toast({
@@ -2401,9 +2439,9 @@ const StudentResults: React.FC = () => {
                                 result.result.toLowerCase() === "pass"
                                   ? "default"
                                   : result.result.toLowerCase() ===
-                                    "distinction"
-                                  ? "secondary"
-                                  : "destructive"
+                                      "distinction"
+                                    ? "secondary"
+                                    : "destructive"
                               }
                               className="text-xs"
                             >
@@ -2520,7 +2558,7 @@ const StudentResults: React.FC = () => {
                       );
                     }
                     return null;
-                  }
+                  },
                 )}
               </div>
 
@@ -2820,7 +2858,7 @@ const StudentResults: React.FC = () => {
                   <div className="grid gap-4">
                     {subjects.map((subject) => {
                       const existingMark = formData.marks.find(
-                        (mark) => mark.subject === subject.id
+                        (mark) => mark.subject === subject.id,
                       );
                       return (
                         <Card key={subject.id} className="p-4">
@@ -2842,14 +2880,14 @@ const StudentResults: React.FC = () => {
                               </div>
                               {errors[
                                 `marks_${formData.marks.findIndex(
-                                  (m) => m.subject === subject.id
+                                  (m) => m.subject === subject.id,
                                 )}`
                               ] && (
                                 <div className="text-sm text-destructive mt-1">
                                   {
                                     errors[
                                       `marks_${formData.marks.findIndex(
-                                        (m) => m.subject === subject.id
+                                        (m) => m.subject === subject.id,
                                       )}`
                                     ]
                                   }
@@ -2894,7 +2932,7 @@ const StudentResults: React.FC = () => {
                                           "te_obtained",
                                           e.target.value
                                             ? parseInt(e.target.value)
-                                            : null
+                                            : null,
                                         )
                                       }
                                       placeholder="0"
@@ -2919,7 +2957,7 @@ const StudentResults: React.FC = () => {
                                           "ce_obtained",
                                           e.target.value
                                             ? parseInt(e.target.value)
-                                            : null
+                                            : null,
                                         )
                                       }
                                       placeholder="0"
@@ -2931,58 +2969,177 @@ const StudentResults: React.FC = () => {
                               )}
 
                               {/* Practical subjects - show PE and PW */}
-                              {(subject.pe_max || subject.pw_max) && (
+                              {(subject.pe_max ||
+                                subject.pw_max ||
+                                subject.pr_max ||
+                                subject.project_max ||
+                                subject.viva_max ||
+                                subject.pl_max) && (
                                 <>
-                                  <div className="space-y-1">
-                                    <Label
-                                      htmlFor={`pe_${subject.id}`}
-                                      className="text-xs"
-                                    >
-                                      PE (Practical Exam)
-                                    </Label>
-                                    <Input
-                                      id={`pe_${subject.id}`}
-                                      type="number"
-                                      value={existingMark.pe_obtained || ""}
-                                      onChange={(e) =>
-                                        updateMark(
-                                          subject.id!,
-                                          "pe_obtained",
-                                          e.target.value
-                                            ? parseInt(e.target.value)
-                                            : null
-                                        )
-                                      }
-                                      placeholder="0"
-                                      min="0"
-                                      max={subject.pe_max || undefined}
-                                    />
-                                  </div>
-                                  <div className="space-y-1">
-                                    <Label
-                                      htmlFor={`pw_${subject.id}`}
-                                      className="text-xs"
-                                    >
-                                      PW (Practical Work)
-                                    </Label>
-                                    <Input
-                                      id={`pw_${subject.id}`}
-                                      type="number"
-                                      value={existingMark.pw_obtained || ""}
-                                      onChange={(e) =>
-                                        updateMark(
-                                          subject.id!,
-                                          "pw_obtained",
-                                          e.target.value
-                                            ? parseInt(e.target.value)
-                                            : null
-                                        )
-                                      }
-                                      placeholder="0"
-                                      min="0"
-                                      max={subject.pw_max || undefined}
-                                    />
-                                  </div>
+                                  {subject.pe_max && (
+                                    <div className="space-y-1">
+                                      <Label
+                                        htmlFor={`pe_${subject.id}`}
+                                        className="text-xs"
+                                      >
+                                        PE (Practical Exam)
+                                      </Label>
+                                      <Input
+                                        id={`pe_${subject.id}`}
+                                        type="number"
+                                        value={existingMark.pe_obtained || ""}
+                                        onChange={(e) =>
+                                          updateMark(
+                                            subject.id!,
+                                            "pe_obtained",
+                                            e.target.value
+                                              ? parseInt(e.target.value)
+                                              : null,
+                                          )
+                                        }
+                                        placeholder="0"
+                                        min="0"
+                                        max={subject.pe_max || undefined}
+                                      />
+                                    </div>
+                                  )}
+                                  {subject.pw_max && (
+                                    <div className="space-y-1">
+                                      <Label
+                                        htmlFor={`pw_${subject.id}`}
+                                        className="text-xs"
+                                      >
+                                        PW (Practical Work)
+                                      </Label>
+                                      <Input
+                                        id={`pw_${subject.id}`}
+                                        type="number"
+                                        value={existingMark.pw_obtained || ""}
+                                        onChange={(e) =>
+                                          updateMark(
+                                            subject.id!,
+                                            "pw_obtained",
+                                            e.target.value
+                                              ? parseInt(e.target.value)
+                                              : null,
+                                          )
+                                        }
+                                        placeholder="0"
+                                        min="0"
+                                        max={subject.pw_max || undefined}
+                                      />
+                                    </div>
+                                  )}
+                                  {subject.pr_max && (
+                                    <div className="space-y-1">
+                                      <Label
+                                        htmlFor={`pr_${subject.id}`}
+                                        className="text-xs"
+                                      >
+                                        P.R (Practical Record)
+                                      </Label>
+                                      <Input
+                                        id={`pr_${subject.id}`}
+                                        type="number"
+                                        value={existingMark.pr_obtained || ""}
+                                        onChange={(e) =>
+                                          updateMark(
+                                            subject.id!,
+                                            "pr_obtained",
+                                            e.target.value
+                                              ? parseInt(e.target.value)
+                                              : null,
+                                          )
+                                        }
+                                        placeholder="0"
+                                        min="0"
+                                        max={subject.pr_max || undefined}
+                                      />
+                                    </div>
+                                  )}
+                                  {subject.project_max && (
+                                    <div className="space-y-1">
+                                      <Label
+                                        htmlFor={`project_${subject.id}`}
+                                        className="text-xs"
+                                      >
+                                        Project
+                                      </Label>
+                                      <Input
+                                        id={`project_${subject.id}`}
+                                        type="number"
+                                        value={
+                                          existingMark.project_obtained || ""
+                                        }
+                                        onChange={(e) =>
+                                          updateMark(
+                                            subject.id!,
+                                            "project_obtained",
+                                            e.target.value
+                                              ? parseInt(e.target.value)
+                                              : null,
+                                          )
+                                        }
+                                        placeholder="0"
+                                        min="0"
+                                        max={subject.project_max || undefined}
+                                      />
+                                    </div>
+                                  )}
+                                  {subject.viva_max && (
+                                    <div className="space-y-1">
+                                      <Label
+                                        htmlFor={`viva_${subject.id}`}
+                                        className="text-xs"
+                                      >
+                                        Viva
+                                      </Label>
+                                      <Input
+                                        id={`viva_${subject.id}`}
+                                        type="number"
+                                        value={existingMark.viva_obtained || ""}
+                                        onChange={(e) =>
+                                          updateMark(
+                                            subject.id!,
+                                            "viva_obtained",
+                                            e.target.value
+                                              ? parseInt(e.target.value)
+                                              : null,
+                                          )
+                                        }
+                                        placeholder="0"
+                                        min="0"
+                                        max={subject.viva_max || undefined}
+                                      />
+                                    </div>
+                                  )}
+                                  {subject.pl_max && (
+                                    <div className="space-y-1">
+                                      <Label
+                                        htmlFor={`pl_${subject.id}`}
+                                        className="text-xs"
+                                      >
+                                        PL
+                                      </Label>
+                                      <Input
+                                        id={`pl_${subject.id}`}
+                                        type="number"
+                                        value={existingMark.pl_obtained || ""}
+                                        onChange={(e) =>
+                                          updateMark(
+                                            subject.id!,
+                                            "pl_obtained",
+                                            e.target.value
+                                              ? parseInt(e.target.value)
+                                              : null,
+                                          )
+                                        }
+                                        placeholder="0"
+                                        min="0"
+                                        max={subject.pl_max || undefined}
+                                      />
+                                    </div>
+                                  )}
                                 </>
                               )}
                             </div>
@@ -3209,9 +3366,9 @@ const StudentResults: React.FC = () => {
                                   result.result.toLowerCase() === "pass"
                                     ? "default"
                                     : result.result.toLowerCase() ===
-                                      "distinction"
-                                    ? "secondary"
-                                    : "destructive"
+                                        "distinction"
+                                      ? "secondary"
+                                      : "destructive"
                                 }
                                 className="text-xs sm:text-sm"
                               >
@@ -3697,9 +3854,9 @@ const StudentResults: React.FC = () => {
                                   result.result.toLowerCase() === "pass"
                                     ? "default"
                                     : result.result.toLowerCase() ===
-                                      "distinction"
-                                    ? "secondary"
-                                    : "destructive"
+                                        "distinction"
+                                      ? "secondary"
+                                      : "destructive"
                                 }
                                 className="text-xs sm:text-sm"
                               >

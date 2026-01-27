@@ -175,7 +175,7 @@ const StudentResultsTab: React.FC = () => {
   // Add mark for a subject
   const addMark = (subjectId: number, subjectName: string) => {
     const existingMark = formData.marks.find(
-      (mark) => mark.subject === subjectId
+      (mark) => mark.subject === subjectId,
     );
     if (!existingMark) {
       const newMark: StudentMark = {
@@ -197,13 +197,13 @@ const StudentResultsTab: React.FC = () => {
   const updateMark = (
     subjectId: number,
     field: keyof StudentMark,
-    value: number | null
+    value: number | null,
   ) => {
     // Ensure value is not negative
     const validatedValue = value !== null && value < 0 ? 0 : value;
 
     const updatedMarks = formData.marks.map((mark) =>
-      mark.subject === subjectId ? { ...mark, [field]: validatedValue } : mark
+      mark.subject === subjectId ? { ...mark, [field]: validatedValue } : mark,
     );
     setFormData({ ...formData, marks: updatedMarks });
   };
@@ -211,7 +211,7 @@ const StudentResultsTab: React.FC = () => {
   // Remove mark
   const removeMark = (subjectId: number) => {
     const updatedMarks = formData.marks.filter(
-      (mark) => mark.subject !== subjectId
+      (mark) => mark.subject !== subjectId,
     );
     setFormData({ ...formData, marks: updatedMarks });
   };
@@ -249,7 +249,12 @@ const StudentResultsTab: React.FC = () => {
         const hasTheory =
           mark.te_obtained !== null || mark.ce_obtained !== null;
         const hasPractical =
-          mark.pe_obtained !== null || mark.pw_obtained !== null;
+          mark.pe_obtained !== null ||
+          mark.pw_obtained !== null ||
+          mark.pr_obtained !== null ||
+          mark.project_obtained !== null ||
+          mark.viva_obtained !== null ||
+          mark.pl_obtained !== null;
 
         if (!hasTheory && !hasPractical) {
           newErrors[`marks_${index}`] =
@@ -290,6 +295,10 @@ const StudentResultsTab: React.FC = () => {
           ce_obtained: mark.ce_obtained,
           pe_obtained: mark.pe_obtained,
           pw_obtained: mark.pw_obtained,
+          pr_obtained: mark.pr_obtained,
+          project_obtained: mark.project_obtained,
+          viva_obtained: mark.viva_obtained,
+          pl_obtained: mark.pl_obtained,
         })),
         is_published: formData.is_published || false,
         published_date: formData.published_date || null,
@@ -297,7 +306,7 @@ const StudentResultsTab: React.FC = () => {
 
       await api.put(
         `/api/students/student-results/update/${editingResult.id}/`,
-        payload
+        payload,
       );
       toast({
         title: "Success",
@@ -331,7 +340,7 @@ const StudentResultsTab: React.FC = () => {
     try {
       setIsDeleting(true);
       await api.delete(
-        `/api/students/student-results/delete/${resultToDelete.id}/`
+        `/api/students/student-results/delete/${resultToDelete.id}/`,
       );
       toast({
         title: "Success",
@@ -374,8 +383,8 @@ const StudentResultsTab: React.FC = () => {
       normalized === "pass" || normalized === "passed"
         ? "bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-300"
         : normalized === "fail" || normalized === "failed"
-        ? "bg-red-100 dark:bg-red-900/40 text-red-700 dark:text-red-300"
-        : "bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300";
+          ? "bg-red-100 dark:bg-red-900/40 text-red-700 dark:text-red-300"
+          : "bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300";
     return (
       <span
         className={`px-2 py-0.5 rounded-full text-xs font-semibold ${color}`}
@@ -457,7 +466,7 @@ const StudentResultsTab: React.FC = () => {
                 (m) =>
                   m.te_obtained != null ||
                   m.ce_obtained != null ||
-                  m.theory_total != null
+                  m.theory_total != null,
               ) && (
                 <div className="overflow-hidden rounded-xl border border-border">
                   <div className="overflow-x-auto">
@@ -472,14 +481,14 @@ const StudentResultsTab: React.FC = () => {
                               (m: any) =>
                                 m.te_obtained != null ||
                                 m.ce_obtained != null ||
-                                m.theory_total != null
+                                m.theory_total != null,
                             );
                             const teMaxArr = theoryMarks
                               .map(
                                 (m: any) =>
                                   courseIdToSubjectMap[result.course]?.[
                                     m.subject as number
-                                  ]?.te_max
+                                  ]?.te_max,
                               )
                               .filter((v: any) => typeof v === "number");
                             const ceMaxArr = theoryMarks
@@ -487,7 +496,7 @@ const StudentResultsTab: React.FC = () => {
                                 (m: any) =>
                                   courseIdToSubjectMap[result.course]?.[
                                     m.subject as number
-                                  ]?.ce_max
+                                  ]?.ce_max,
                               )
                               .filter((v: any) => typeof v === "number");
                             const thTotalArr = theoryMarks
@@ -495,7 +504,7 @@ const StudentResultsTab: React.FC = () => {
                                 (m: any) =>
                                   courseIdToSubjectMap[result.course]?.[
                                     m.subject as number
-                                  ]?.theory_total
+                                  ]?.theory_total,
                               )
                               .filter((v: any) => typeof v === "number");
                             const teMax = teMaxArr.length
@@ -529,7 +538,7 @@ const StudentResultsTab: React.FC = () => {
                             (m) =>
                               m.te_obtained != null ||
                               m.ce_obtained != null ||
-                              m.theory_total != null
+                              m.theory_total != null,
                           )
                           .map((m, idx) => (
                             <tr
@@ -551,7 +560,7 @@ const StudentResultsTab: React.FC = () => {
                               </td>
                               <td
                                 className={`text-center p-4 font-bold font-mono ${scoreColor(
-                                  computeTheoryTotal(m)
+                                  computeTheoryTotal(m),
                                 )}`}
                               >
                                 {computeTheoryTotal(m)}
@@ -568,7 +577,7 @@ const StudentResultsTab: React.FC = () => {
                 (m) =>
                   m.pe_obtained != null ||
                   m.pw_obtained != null ||
-                  m.practical_total != null
+                  m.practical_total != null,
               ) && (
                 <div className="overflow-hidden rounded-xl border border-border">
                   <div className="overflow-x-auto">
@@ -583,14 +592,14 @@ const StudentResultsTab: React.FC = () => {
                               (m: any) =>
                                 m.pe_obtained != null ||
                                 m.pw_obtained != null ||
-                                m.practical_total != null
+                                m.practical_total != null,
                             );
                             const peMaxArr = practicalMarks
                               .map(
                                 (m: any) =>
                                   courseIdToSubjectMap[result.course]?.[
                                     m.subject as number
-                                  ]?.pe_max
+                                  ]?.pe_max,
                               )
                               .filter((v: any) => typeof v === "number");
                             const pwMaxArr = practicalMarks
@@ -598,7 +607,7 @@ const StudentResultsTab: React.FC = () => {
                                 (m: any) =>
                                   courseIdToSubjectMap[result.course]?.[
                                     m.subject as number
-                                  ]?.pw_max
+                                  ]?.pw_max,
                               )
                               .filter((v: any) => typeof v === "number");
                             const prTotalArr = practicalMarks
@@ -606,7 +615,7 @@ const StudentResultsTab: React.FC = () => {
                                 (m: any) =>
                                   courseIdToSubjectMap[result.course]?.[
                                     m.subject as number
-                                  ]?.practical_total
+                                  ]?.practical_total,
                               )
                               .filter((v: any) => typeof v === "number");
                             const peMax = peMaxArr.length
@@ -626,6 +635,78 @@ const StudentResultsTab: React.FC = () => {
                                 <th className="text-center p-4 font-semibold text-foreground min-w-[80px] text-sm">{`P.W(${
                                   pwMax ?? "-"
                                 })`}</th>
+                                {practicalMarks.some(
+                                  (m) => m.pr_obtained != null,
+                                ) && (
+                                  <th className="text-center p-4 font-semibold text-foreground min-w-[80px] text-sm">{`P.R(${
+                                    practicalMarks
+                                      .map(
+                                        (m: any) =>
+                                          courseIdToSubjectMap[result.course]?.[
+                                            m.subject as number
+                                          ]?.pr_max,
+                                      )
+                                      .filter((v: any) => typeof v === "number")
+                                      .reduce(
+                                        (max, v) => (v > max ? v : max),
+                                        0,
+                                      ) || "-"
+                                  })`}</th>
+                                )}
+                                {practicalMarks.some(
+                                  (m) => m.project_obtained != null,
+                                ) && (
+                                  <th className="text-center p-4 font-semibold text-foreground min-w-[80px] text-sm">{`Proj(${
+                                    practicalMarks
+                                      .map(
+                                        (m: any) =>
+                                          courseIdToSubjectMap[result.course]?.[
+                                            m.subject as number
+                                          ]?.project_max,
+                                      )
+                                      .filter((v: any) => typeof v === "number")
+                                      .reduce(
+                                        (max, v) => (v > max ? v : max),
+                                        0,
+                                      ) || "-"
+                                  })`}</th>
+                                )}
+                                {practicalMarks.some(
+                                  (m) => m.viva_obtained != null,
+                                ) && (
+                                  <th className="text-center p-4 font-semibold text-foreground min-w-[80px] text-sm">{`Viva(${
+                                    practicalMarks
+                                      .map(
+                                        (m: any) =>
+                                          courseIdToSubjectMap[result.course]?.[
+                                            m.subject as number
+                                          ]?.viva_max,
+                                      )
+                                      .filter((v: any) => typeof v === "number")
+                                      .reduce(
+                                        (max, v) => (v > max ? v : max),
+                                        0,
+                                      ) || "-"
+                                  })`}</th>
+                                )}
+                                {practicalMarks.some(
+                                  (m) => m.pl_obtained != null,
+                                ) && (
+                                  <th className="text-center p-4 font-semibold text-foreground min-w-[80px] text-sm">{`PL(${
+                                    practicalMarks
+                                      .map(
+                                        (m: any) =>
+                                          courseIdToSubjectMap[result.course]?.[
+                                            m.subject as number
+                                          ]?.pl_max,
+                                      )
+                                      .filter((v: any) => typeof v === "number")
+                                      .reduce(
+                                        (max, v) => (v > max ? v : max),
+                                        0,
+                                      ) || "-"
+                                  })`}</th>
+                                )}
                                 <th className="text-center p-4 font-semibold text-foreground min-w-[120px] text-sm">{`Practical Total(${
                                   prTotalMax ?? "-"
                                 })`}</th>
@@ -640,7 +721,7 @@ const StudentResultsTab: React.FC = () => {
                             (m) =>
                               m.pe_obtained != null ||
                               m.pw_obtained != null ||
-                              m.practical_total != null
+                              m.practical_total != null,
                           )
                           .map((m, idx) => (
                             <tr
@@ -660,9 +741,37 @@ const StudentResultsTab: React.FC = () => {
                               <td className="text-center p-4 font-mono text-sm text-foreground">
                                 {m.pw_obtained ?? "-"}
                               </td>
+                              {result.marks.some(
+                                (mk) => mk.pr_obtained != null,
+                              ) && (
+                                <td className="text-center p-4 font-mono text-sm text-foreground">
+                                  {m.pr_obtained ?? "-"}
+                                </td>
+                              )}
+                              {result.marks.some(
+                                (mk) => mk.project_obtained != null,
+                              ) && (
+                                <td className="text-center p-4 font-mono text-sm text-foreground">
+                                  {m.project_obtained ?? "-"}
+                                </td>
+                              )}
+                              {result.marks.some(
+                                (mk) => mk.viva_obtained != null,
+                              ) && (
+                                <td className="text-center p-4 font-mono text-sm text-foreground">
+                                  {m.viva_obtained ?? "-"}
+                                </td>
+                              )}
+                              {result.marks.some(
+                                (mk) => mk.pl_obtained != null,
+                              ) && (
+                                <td className="text-center p-4 font-mono text-sm text-foreground">
+                                  {m.pl_obtained ?? "-"}
+                                </td>
+                              )}
                               <td
                                 className={`text-center p-4 font-bold font-mono ${scoreColor(
-                                  computePracticalTotal(m)
+                                  computePracticalTotal(m),
                                 )}`}
                               >
                                 {computePracticalTotal(m)}
@@ -678,12 +787,12 @@ const StudentResultsTab: React.FC = () => {
               {(() => {
                 const totalObtained = result.marks.reduce(
                   (sum: number, m: any) => sum + computeOverallObtained(m),
-                  0
+                  0,
                 );
                 const totalMax = result.marks.reduce(
                   (sum: number, m: any) =>
                     sum + getOverallMax(result.course, m.subject as number),
-                  0
+                  0,
                 );
                 return (
                   <div className="flex items-center justify-end gap-6 text-sm">
@@ -947,7 +1056,7 @@ const StudentResultsTab: React.FC = () => {
                 <div className="grid gap-4">
                   {subjects.map((subject) => {
                     const existingMark = formData.marks.find(
-                      (mark) => mark.subject === subject.id
+                      (mark) => mark.subject === subject.id,
                     );
                     return (
                       <Card key={subject.id} className="p-4">
@@ -969,14 +1078,14 @@ const StudentResultsTab: React.FC = () => {
                             </div>
                             {errors[
                               `marks_${formData.marks.findIndex(
-                                (m) => m.subject === subject.id
+                                (m) => m.subject === subject.id,
                               )}`
                             ] && (
                               <div className="text-sm text-destructive mt-1">
                                 {
                                   errors[
                                     `marks_${formData.marks.findIndex(
-                                      (m) => m.subject === subject.id
+                                      (m) => m.subject === subject.id,
                                     )}`
                                   ]
                                 }
@@ -1021,7 +1130,7 @@ const StudentResultsTab: React.FC = () => {
                                         "te_obtained",
                                         e.target.value
                                           ? parseInt(e.target.value)
-                                          : null
+                                          : null,
                                       )
                                     }
                                     placeholder="0"
@@ -1046,7 +1155,7 @@ const StudentResultsTab: React.FC = () => {
                                         "ce_obtained",
                                         e.target.value
                                           ? parseInt(e.target.value)
-                                          : null
+                                          : null,
                                       )
                                     }
                                     placeholder="0"
@@ -1057,59 +1166,178 @@ const StudentResultsTab: React.FC = () => {
                               </>
                             )}
 
-                            {/* Practical subjects - show PE and PW */}
-                            {(subject.pe_max || subject.pw_max) && (
+                            {/* Practical subjects - show PE, PW, PR, Project, Viva, PL */}
+                            {(subject.pe_max ||
+                              subject.pw_max ||
+                              subject.pr_max ||
+                              subject.project_max ||
+                              subject.viva_max ||
+                              subject.pl_max) && (
                               <>
-                                <div className="space-y-1">
-                                  <Label
-                                    htmlFor={`pe_${subject.id}`}
-                                    className="text-xs"
-                                  >
-                                    PE (Practical Exam)
-                                  </Label>
-                                  <Input
-                                    id={`pe_${subject.id}`}
-                                    type="number"
-                                    value={existingMark.pe_obtained || ""}
-                                    onChange={(e) =>
-                                      updateMark(
-                                        subject.id!,
-                                        "pe_obtained",
-                                        e.target.value
-                                          ? parseInt(e.target.value)
-                                          : null
-                                      )
-                                    }
-                                    placeholder="0"
-                                    min="0"
-                                    max={subject.pe_max || undefined}
-                                  />
-                                </div>
-                                <div className="space-y-1">
-                                  <Label
-                                    htmlFor={`pw_${subject.id}`}
-                                    className="text-xs"
-                                  >
-                                    PW (Practical Work)
-                                  </Label>
-                                  <Input
-                                    id={`pw_${subject.id}`}
-                                    type="number"
-                                    value={existingMark.pw_obtained || ""}
-                                    onChange={(e) =>
-                                      updateMark(
-                                        subject.id!,
-                                        "pw_obtained",
-                                        e.target.value
-                                          ? parseInt(e.target.value)
-                                          : null
-                                      )
-                                    }
-                                    placeholder="0"
-                                    min="0"
-                                    max={subject.pw_max || undefined}
-                                  />
-                                </div>
+                                {subject.pe_max && (
+                                  <div className="space-y-1">
+                                    <Label
+                                      htmlFor={`pe_${subject.id}`}
+                                      className="text-xs"
+                                    >
+                                      PE (Practical Exam)
+                                    </Label>
+                                    <Input
+                                      id={`pe_${subject.id}`}
+                                      type="number"
+                                      value={existingMark.pe_obtained || ""}
+                                      onChange={(e) =>
+                                        updateMark(
+                                          subject.id!,
+                                          "pe_obtained",
+                                          e.target.value
+                                            ? parseInt(e.target.value)
+                                            : null,
+                                        )
+                                      }
+                                      placeholder="0"
+                                      min="0"
+                                      max={subject.pe_max || undefined}
+                                    />
+                                  </div>
+                                )}
+                                {subject.pw_max && (
+                                  <div className="space-y-1">
+                                    <Label
+                                      htmlFor={`pw_${subject.id}`}
+                                      className="text-xs"
+                                    >
+                                      PW (Practical Work)
+                                    </Label>
+                                    <Input
+                                      id={`pw_${subject.id}`}
+                                      type="number"
+                                      value={existingMark.pw_obtained || ""}
+                                      onChange={(e) =>
+                                        updateMark(
+                                          subject.id!,
+                                          "pw_obtained",
+                                          e.target.value
+                                            ? parseInt(e.target.value)
+                                            : null,
+                                        )
+                                      }
+                                      placeholder="0"
+                                      min="0"
+                                      max={subject.pw_max || undefined}
+                                    />
+                                  </div>
+                                )}
+                                {subject.pr_max && (
+                                  <div className="space-y-1">
+                                    <Label
+                                      htmlFor={`pr_${subject.id}`}
+                                      className="text-xs"
+                                    >
+                                      PR (Practical Record)
+                                    </Label>
+                                    <Input
+                                      id={`pr_${subject.id}`}
+                                      type="number"
+                                      value={existingMark.pr_obtained || ""}
+                                      onChange={(e) =>
+                                        updateMark(
+                                          subject.id!,
+                                          "pr_obtained",
+                                          e.target.value
+                                            ? parseInt(e.target.value)
+                                            : null,
+                                        )
+                                      }
+                                      placeholder="0"
+                                      min="0"
+                                      max={subject.pr_max || undefined}
+                                    />
+                                  </div>
+                                )}
+                                {subject.project_max && (
+                                  <div className="space-y-1">
+                                    <Label
+                                      htmlFor={`proj_${subject.id}`}
+                                      className="text-xs"
+                                    >
+                                      Project
+                                    </Label>
+                                    <Input
+                                      id={`proj_${subject.id}`}
+                                      type="number"
+                                      value={
+                                        existingMark.project_obtained || ""
+                                      }
+                                      onChange={(e) =>
+                                        updateMark(
+                                          subject.id!,
+                                          "project_obtained",
+                                          e.target.value
+                                            ? parseInt(e.target.value)
+                                            : null,
+                                        )
+                                      }
+                                      placeholder="0"
+                                      min="0"
+                                      max={subject.project_max || undefined}
+                                    />
+                                  </div>
+                                )}
+                                {subject.viva_max && (
+                                  <div className="space-y-1">
+                                    <Label
+                                      htmlFor={`viva_${subject.id}`}
+                                      className="text-xs"
+                                    >
+                                      Viva
+                                    </Label>
+                                    <Input
+                                      id={`viva_${subject.id}`}
+                                      type="number"
+                                      value={existingMark.viva_obtained || ""}
+                                      onChange={(e) =>
+                                        updateMark(
+                                          subject.id!,
+                                          "viva_obtained",
+                                          e.target.value
+                                            ? parseInt(e.target.value)
+                                            : null,
+                                        )
+                                      }
+                                      placeholder="0"
+                                      min="0"
+                                      max={subject.viva_max || undefined}
+                                    />
+                                  </div>
+                                )}
+                                {subject.pl_max && (
+                                  <div className="space-y-1">
+                                    <Label
+                                      htmlFor={`pl_${subject.id}`}
+                                      className="text-xs"
+                                    >
+                                      PL (Practical Lab)
+                                    </Label>
+                                    <Input
+                                      id={`pl_${subject.id}`}
+                                      type="number"
+                                      value={existingMark.pl_obtained || ""}
+                                      onChange={(e) =>
+                                        updateMark(
+                                          subject.id!,
+                                          "pl_obtained",
+                                          e.target.value
+                                            ? parseInt(e.target.value)
+                                            : null,
+                                        )
+                                      }
+                                      placeholder="0"
+                                      min="0"
+                                      max={subject.pl_max || undefined}
+                                    />
+                                  </div>
+                                )}
                               </>
                             )}
                           </div>
