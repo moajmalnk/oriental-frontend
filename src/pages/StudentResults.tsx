@@ -385,7 +385,7 @@ const StudentResults: React.FC = () => {
             search: search.trim(),
           },
         }),
-        api.get("/api/students/students/"),
+        api.get("/api/students/students/", { params: { page_size: 1000 } }),
         api.get("/api/course/list/"),
         api.get("/api/students/batches/"),
       ]);
