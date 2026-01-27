@@ -264,8 +264,7 @@ const Courses: React.FC = () => {
           pw_max: null,
           pr_max: null,
           project_max: null,
-          viva_max: null,
-          pl_max: null,
+          viva_pl_max: null,
           practical_settings: null,
         },
       ],
@@ -294,8 +293,7 @@ const Courses: React.FC = () => {
                   pw_max: null,
                   pr_max: null,
                   project_max: null,
-                  viva_max: null,
-                  pl_max: null,
+                  viva_pl_max: null,
                   practical_settings: null,
                 },
               ],
@@ -339,9 +337,9 @@ const Courses: React.FC = () => {
         (subject.pe_max !== null && subject.pe_max !== undefined) ||
         (subject.pw_max !== null && subject.pw_max !== undefined) ||
         (subject.pr_max !== null && subject.pr_max !== undefined) ||
+        (subject.pr_max !== null && subject.pr_max !== undefined) ||
         (subject.project_max !== null && subject.project_max !== undefined) ||
-        (subject.viva_max !== null && subject.viva_max !== undefined) ||
-        (subject.pl_max !== null && subject.pl_max !== undefined);
+        (subject.viva_pl_max !== null && subject.viva_pl_max !== undefined);
 
       if (!hasTheory && !hasPractical) {
         newErrors[`subject_${index}`] =
@@ -467,8 +465,7 @@ const Courses: React.FC = () => {
           pw_max: null,
           pr_max: null,
           project_max: null,
-          viva_max: null,
-          pl_max: null,
+          viva_pl_max: null,
           practical_settings: null,
         },
       ],
@@ -536,8 +533,8 @@ const Courses: React.FC = () => {
       (subject.pw_max !== null && subject.pw_max !== undefined) ||
       (subject.pr_max !== null && subject.pr_max !== undefined) ||
       (subject.project_max !== null && subject.project_max !== undefined) ||
-      (subject.viva_max !== null && subject.viva_max !== undefined) ||
-      (subject.pl_max !== null && subject.pl_max !== undefined);
+      (subject.project_max !== null && subject.project_max !== undefined) ||
+      (subject.viva_pl_max !== null && subject.viva_pl_max !== undefined);
 
     if (hasTheory) return "theory";
     if (hasPractical) return "practical";
@@ -624,8 +621,7 @@ const Courses: React.FC = () => {
                     pw_max: null,
                     pr_max: null,
                     project_max: null,
-                    viva_max: null,
-                    pl_max: null,
+                    viva_pl_max: null,
                   };
                   subjects.push(subject);
                 } else if (subjectType === "practical") {
@@ -639,10 +635,9 @@ const Courses: React.FC = () => {
                     project_max: row[i + 7]
                       ? parseInt(row[i + 7].toString())
                       : null,
-                    viva_max: row[i + 8]
+                    viva_pl_max: row[i + 8]
                       ? parseInt(row[i + 8].toString())
                       : null,
-                    pl_max: row[i + 9] ? parseInt(row[i + 9].toString()) : null,
                   };
                   subjects.push(subject);
                 }
@@ -1879,43 +1874,19 @@ const Courses: React.FC = () => {
                                 </div>
                                 <div>
                                   <Label
-                                    htmlFor={`viva_max_${index}`}
+                                    htmlFor={`viva_pl_max_${index}`}
                                     className="text-xs"
                                   >
-                                    Viva Max
+                                    Viva & PL Max
                                   </Label>
                                   <Input
-                                    id={`viva_max_${index}`}
+                                    id={`viva_pl_max_${index}`}
                                     type="number"
-                                    value={subject.viva_max || ""}
+                                    value={subject.viva_pl_max || ""}
                                     onChange={(e) =>
                                       updateSubject(
                                         index,
-                                        "viva_max",
-                                        e.target.value
-                                          ? parseInt(e.target.value)
-                                          : null,
-                                      )
-                                    }
-                                    placeholder="0"
-                                    className="text-xs sm:text-sm"
-                                  />
-                                </div>
-                                <div>
-                                  <Label
-                                    htmlFor={`pl_max_${index}`}
-                                    className="text-xs"
-                                  >
-                                    PL Max
-                                  </Label>
-                                  <Input
-                                    id={`pl_max_${index}`}
-                                    type="number"
-                                    value={subject.pl_max || ""}
-                                    onChange={(e) =>
-                                      updateSubject(
-                                        index,
-                                        "pl_max",
+                                        "viva_pl_max",
                                         e.target.value
                                           ? parseInt(e.target.value)
                                           : null,
@@ -1938,10 +1909,8 @@ const Courses: React.FC = () => {
                               subject.pr_max !== undefined) ||
                             (subject.project_max !== null &&
                               subject.project_max !== undefined) ||
-                            (subject.viva_max !== null &&
-                              subject.viva_max !== undefined) ||
-                            (subject.pl_max !== null &&
-                              subject.pl_max !== undefined)) && (
+                            (subject.viva_pl_max !== null &&
+                              subject.viva_pl_max !== undefined)) && (
                             <div className="pt-4 border-t mt-4">
                               <div className="flex items-center space-x-2 mb-4">
                                 <Checkbox
@@ -2020,14 +1989,9 @@ const Courses: React.FC = () => {
                                           max: subject.project_max,
                                         },
                                         {
-                                          key: "viva",
-                                          label: "Viva",
-                                          max: subject.viva_max,
-                                        },
-                                        {
-                                          key: "pl",
-                                          label: "PL",
-                                          max: subject.pl_max,
+                                          key: "viva_pl",
+                                          label: "Viva & PL",
+                                          max: subject.viva_pl_max,
                                         },
                                       ].map((field) => (
                                         <div

@@ -605,8 +605,7 @@ const StudentResults: React.FC = () => {
         pw_obtained: null,
         pr_obtained: null,
         project_obtained: null,
-        viva_obtained: null,
-        pl_obtained: null,
+        viva_pl_obtained: null,
       };
       setFormData({
         ...formData,
@@ -691,8 +690,8 @@ const StudentResults: React.FC = () => {
           mark.pw_obtained !== null ||
           mark.pr_obtained !== null ||
           mark.project_obtained !== null ||
-          mark.viva_obtained !== null ||
-          mark.pl_obtained !== null;
+          mark.project_obtained !== null ||
+          mark.viva_pl_obtained !== null;
 
         if (!hasTheory && !hasPractical) {
           newErrors[`marks_${index}`] = "At least one mark is required";
@@ -734,8 +733,7 @@ const StudentResults: React.FC = () => {
           pw_obtained: mark.pw_obtained,
           pr_obtained: mark.pr_obtained,
           project_obtained: mark.project_obtained,
-          viva_obtained: mark.viva_obtained,
-          pl_obtained: mark.pl_obtained,
+          viva_pl_obtained: mark.viva_pl_obtained,
         })),
         is_published: formData.is_published || false,
         published_date: formData.published_date || null,
@@ -2978,8 +2976,7 @@ const StudentResults: React.FC = () => {
                                 subject.pw_max ||
                                 subject.pr_max ||
                                 subject.project_max ||
-                                subject.viva_max ||
-                                subject.pl_max) && (
+                                subject.viva_pl_max) && (
                                 <>
                                   {subject.pe_max && (
                                     <div className="space-y-1">
@@ -3091,22 +3088,24 @@ const StudentResults: React.FC = () => {
                                       />
                                     </div>
                                   )}
-                                  {subject.viva_max && (
+                                  {subject.viva_pl_max && (
                                     <div className="space-y-1">
                                       <Label
-                                        htmlFor={`viva_${subject.id}`}
+                                        htmlFor={`viva_pl_${subject.id}`}
                                         className="text-xs"
                                       >
-                                        Viva
+                                        Viva & PL
                                       </Label>
                                       <Input
-                                        id={`viva_${subject.id}`}
+                                        id={`viva_pl_${subject.id}`}
                                         type="number"
-                                        value={existingMark.viva_obtained || ""}
+                                        value={
+                                          existingMark.viva_pl_obtained || ""
+                                        }
                                         onChange={(e) =>
                                           updateMark(
                                             subject.id!,
-                                            "viva_obtained",
+                                            "viva_pl_obtained",
                                             e.target.value
                                               ? parseInt(e.target.value)
                                               : null,
@@ -3114,34 +3113,7 @@ const StudentResults: React.FC = () => {
                                         }
                                         placeholder="0"
                                         min="0"
-                                        max={subject.viva_max || undefined}
-                                      />
-                                    </div>
-                                  )}
-                                  {subject.pl_max && (
-                                    <div className="space-y-1">
-                                      <Label
-                                        htmlFor={`pl_${subject.id}`}
-                                        className="text-xs"
-                                      >
-                                        PL
-                                      </Label>
-                                      <Input
-                                        id={`pl_${subject.id}`}
-                                        type="number"
-                                        value={existingMark.pl_obtained || ""}
-                                        onChange={(e) =>
-                                          updateMark(
-                                            subject.id!,
-                                            "pl_obtained",
-                                            e.target.value
-                                              ? parseInt(e.target.value)
-                                              : null,
-                                          )
-                                        }
-                                        placeholder="0"
-                                        min="0"
-                                        max={subject.pl_max || undefined}
+                                        max={subject.viva_pl_max || undefined}
                                       />
                                     </div>
                                   )}

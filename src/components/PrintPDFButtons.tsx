@@ -187,8 +187,7 @@ export const PrintPDFButtons = ({ student }: PrintPDFButtonsProps) => {
         { key: "PW", label: "P.W", maxKey: "PW_Max" },
         { key: "PR", label: "P.R", maxKey: "PR_Max" },
         { key: "Project", label: "Proj", maxKey: "Project_Max" },
-        { key: "Viva", label: "Viva", maxKey: "Viva_Max" },
-        { key: "PL", label: "PL", maxKey: "PL_Max" },
+        { key: "Viva_PL", label: "Viva & PL", maxKey: "Viva_PL_Max" },
       ];
 
       const practicalSubjectsList =
@@ -503,8 +502,7 @@ export const PrintPDFButtons = ({ student }: PrintPDFButtonsProps) => {
                   if (fk === "PW") val = practicalSubject.PW || 0;
                   if (fk === "PR") val = practicalSubject.PR || 0;
                   if (fk === "PROJECT") val = practicalSubject.Project || 0;
-                  if (fk === "VIVA") val = practicalSubject.Viva || 0;
-                  if (fk === "PL") val = practicalSubject.PL || 0;
+                  if (fk === "VIVA_PL") val = practicalSubject.Viva_PL || 0;
                   return sum + val;
                 }, 0);
                 cellValue = total.toString();
@@ -802,8 +800,8 @@ export const PrintPDFButtons = ({ student }: PrintPDFButtonsProps) => {
                     if (fk === "PR") val = practicalSubject.PR_Max || 0;
                     if (fk === "PROJECT")
                       val = practicalSubject.Project_Max || 0;
-                    if (fk === "VIVA") val = practicalSubject.Viva_Max || 0;
-                    if (fk === "PL") val = practicalSubject.PL_Max || 0;
+                    if (fk === "VIVA_PL")
+                      val = practicalSubject.Viva_PL_Max || 0;
                     return sum + val;
                   },
                   0,

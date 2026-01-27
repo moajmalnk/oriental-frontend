@@ -253,8 +253,8 @@ const StudentResultsTab: React.FC = () => {
           mark.pw_obtained !== null ||
           mark.pr_obtained !== null ||
           mark.project_obtained !== null ||
-          mark.viva_obtained !== null ||
-          mark.pl_obtained !== null;
+          mark.project_obtained !== null ||
+          mark.viva_pl_obtained !== null;
 
         if (!hasTheory && !hasPractical) {
           newErrors[`marks_${index}`] =
@@ -297,8 +297,7 @@ const StudentResultsTab: React.FC = () => {
           pw_obtained: mark.pw_obtained,
           pr_obtained: mark.pr_obtained,
           project_obtained: mark.project_obtained,
-          viva_obtained: mark.viva_obtained,
-          pl_obtained: mark.pl_obtained,
+          viva_pl_obtained: mark.viva_pl_obtained,
         })),
         is_published: formData.is_published || false,
         published_date: formData.published_date || null,
@@ -672,33 +671,15 @@ const StudentResultsTab: React.FC = () => {
                                   })`}</th>
                                 )}
                                 {practicalMarks.some(
-                                  (m) => m.viva_obtained != null,
+                                  (m) => m.viva_pl_obtained != null,
                                 ) && (
-                                  <th className="text-center p-4 font-semibold text-foreground min-w-[80px] text-sm">{`Viva(${
+                                  <th className="text-center p-4 font-semibold text-foreground min-w-[80px] text-sm">{`Viva & PL(${
                                     practicalMarks
                                       .map(
                                         (m: any) =>
                                           courseIdToSubjectMap[result.course]?.[
                                             m.subject as number
-                                          ]?.viva_max,
-                                      )
-                                      .filter((v: any) => typeof v === "number")
-                                      .reduce(
-                                        (max, v) => (v > max ? v : max),
-                                        0,
-                                      ) || "-"
-                                  })`}</th>
-                                )}
-                                {practicalMarks.some(
-                                  (m) => m.pl_obtained != null,
-                                ) && (
-                                  <th className="text-center p-4 font-semibold text-foreground min-w-[80px] text-sm">{`PL(${
-                                    practicalMarks
-                                      .map(
-                                        (m: any) =>
-                                          courseIdToSubjectMap[result.course]?.[
-                                            m.subject as number
-                                          ]?.pl_max,
+                                          ]?.viva_pl_max,
                                       )
                                       .filter((v: any) => typeof v === "number")
                                       .reduce(
@@ -756,17 +737,10 @@ const StudentResultsTab: React.FC = () => {
                                 </td>
                               )}
                               {result.marks.some(
-                                (mk) => mk.viva_obtained != null,
+                                (mk) => mk.viva_pl_obtained != null,
                               ) && (
                                 <td className="text-center p-4 font-mono text-sm text-foreground">
-                                  {m.viva_obtained ?? "-"}
-                                </td>
-                              )}
-                              {result.marks.some(
-                                (mk) => mk.pl_obtained != null,
-                              ) && (
-                                <td className="text-center p-4 font-mono text-sm text-foreground">
-                                  {m.pl_obtained ?? "-"}
+                                  {m.viva_pl_obtained ?? "-"}
                                 </td>
                               )}
                               <td
@@ -1171,8 +1145,7 @@ const StudentResultsTab: React.FC = () => {
                               subject.pw_max ||
                               subject.pr_max ||
                               subject.project_max ||
-                              subject.viva_max ||
-                              subject.pl_max) && (
+                              subject.viva_pl_max) && (
                               <>
                                 {subject.pe_max && (
                                   <div className="space-y-1">
@@ -1284,22 +1257,24 @@ const StudentResultsTab: React.FC = () => {
                                     />
                                   </div>
                                 )}
-                                {subject.viva_max && (
+                                {subject.viva_pl_max && (
                                   <div className="space-y-1">
                                     <Label
-                                      htmlFor={`viva_${subject.id}`}
+                                      htmlFor={`viva_pl_${subject.id}`}
                                       className="text-xs"
                                     >
-                                      Viva
+                                      Viva & PL
                                     </Label>
                                     <Input
-                                      id={`viva_${subject.id}`}
+                                      id={`viva_pl_${subject.id}`}
                                       type="number"
-                                      value={existingMark.viva_obtained || ""}
+                                      value={
+                                        existingMark.viva_pl_obtained || ""
+                                      }
                                       onChange={(e) =>
                                         updateMark(
                                           subject.id!,
-                                          "viva_obtained",
+                                          "viva_pl_obtained",
                                           e.target.value
                                             ? parseInt(e.target.value)
                                             : null,
@@ -1307,34 +1282,7 @@ const StudentResultsTab: React.FC = () => {
                                       }
                                       placeholder="0"
                                       min="0"
-                                      max={subject.viva_max || undefined}
-                                    />
-                                  </div>
-                                )}
-                                {subject.pl_max && (
-                                  <div className="space-y-1">
-                                    <Label
-                                      htmlFor={`pl_${subject.id}`}
-                                      className="text-xs"
-                                    >
-                                      PL (Practical Lab)
-                                    </Label>
-                                    <Input
-                                      id={`pl_${subject.id}`}
-                                      type="number"
-                                      value={existingMark.pl_obtained || ""}
-                                      onChange={(e) =>
-                                        updateMark(
-                                          subject.id!,
-                                          "pl_obtained",
-                                          e.target.value
-                                            ? parseInt(e.target.value)
-                                            : null,
-                                        )
-                                      }
-                                      placeholder="0"
-                                      min="0"
-                                      max={subject.pl_max || undefined}
+                                      max={subject.viva_pl_max || undefined}
                                     />
                                   </div>
                                 )}

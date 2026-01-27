@@ -118,8 +118,7 @@ export const ResultTable = ({ student }: ResultTableProps) => {
   const showPW = hasPracticalField("PW");
   const showPR = hasPracticalField("PR");
   const showProject = hasPracticalField("Project");
-  const showViva = hasPracticalField("Viva");
-  const showPL = hasPracticalField("PL");
+  const showVivaPL = hasPracticalField("Viva_PL");
 
   const MobilePracticalRow = ({
     subject,
@@ -149,11 +148,8 @@ export const ResultTable = ({ student }: ResultTableProps) => {
         case "PROJECT":
           val = subject.Project || 0;
           break;
-        case "VIVA":
-          val = subject.Viva || 0;
-          break;
-        case "PL":
-          val = subject.PL || 0;
+        case "VIVA_PL":
+          val = subject.Viva_PL || 0;
           break;
       }
       return sum + val;
@@ -217,19 +213,13 @@ export const ResultTable = ({ student }: ResultTableProps) => {
               </span>
             </div>
           )}
-          {showViva && !isHidden("viva") && (
+          {showVivaPL && !isHidden("viva_pl") && (
             <div className="text-center">
-              <span className="text-muted-foreground block text-xs">Viva</span>
-              <span className="font-mono font-medium text-sm">
-                {formatScore(subject.Viva)}
+              <span className="text-muted-foreground block text-xs">
+                Viva & PL
               </span>
-            </div>
-          )}
-          {showPL && !isHidden("pl") && (
-            <div className="text-center">
-              <span className="text-muted-foreground block text-xs">PL</span>
               <span className="font-mono font-medium text-sm">
-                {formatScore(subject.PL)}
+                {formatScore(subject.Viva_PL)}
               </span>
             </div>
           )}
@@ -391,14 +381,9 @@ export const ResultTable = ({ student }: ResultTableProps) => {
                               Proj
                             </th>
                           )}
-                          {showViva && (
-                            <th className="text-center p-2 sm:p-3 md:p-4 lg:p-6 font-semibold text-foreground min-w-[60px] sm:min-w-[80px] text-xs sm:text-sm md:text-base">
-                              Viva
-                            </th>
-                          )}
-                          {showPL && (
-                            <th className="text-center p-2 sm:p-3 md:p-4 lg:p-6 font-semibold text-foreground min-w-[60px] sm:min-w-[80px] text-xs sm:text-sm md:text-base">
-                              PL
+                          {showVivaPL && (
+                            <th className="text-center p-2 sm:p-3 md:p-4 lg:p-6 font-semibold text-foreground min-w-[80px] sm:min-w-[100px] text-xs sm:text-sm md:text-base">
+                              Viva & PL
                             </th>
                           )}
                           <th className="text-center p-2 sm:p-3 md:p-4 lg:p-6 font-semibold text-foreground min-w-[80px] sm:min-w-[100px] text-xs sm:text-sm md:text-base">
@@ -435,14 +420,9 @@ export const ResultTable = ({ student }: ResultTableProps) => {
                                 {formatScore(subject.Project)}
                               </td>
                             )}
-                            {showViva && (
+                            {showVivaPL && (
                               <td className="text-center p-2 sm:p-3 md:p-4 lg:p-6 font-mono text-xs sm:text-sm md:text-base">
-                                {formatScore(subject.Viva)}
-                              </td>
-                            )}
-                            {showPL && (
-                              <td className="text-center p-2 sm:p-3 md:p-4 lg:p-6 font-mono text-xs sm:text-sm md:text-base">
-                                {formatScore(subject.PL)}
+                                {formatScore(subject.Viva_PL)}
                               </td>
                             )}
                             <td className="text-center p-2 sm:p-3 md:p-4 lg:p-6 font-bold text-success font-mono text-sm sm:text-base md:text-lg">
@@ -571,23 +551,13 @@ export const ResultTable = ({ student }: ResultTableProps) => {
                                   </span>
                                 </div>
                               )}
-                              {showViva && (
+                              {showVivaPL && (
                                 <div className="flex justify-between">
                                   <span className="text-muted-foreground text-xs">
-                                    Viva:
+                                    Viva & PL:
                                   </span>
                                   <span className="font-mono font-medium text-sm">
-                                    {subject.Viva_Max || "-"}
-                                  </span>
-                                </div>
-                              )}
-                              {showPL && (
-                                <div className="flex justify-between">
-                                  <span className="text-muted-foreground text-xs">
-                                    PL:
-                                  </span>
-                                  <span className="font-mono font-medium text-sm">
-                                    {subject.PL_Max || "-"}
+                                    {subject.Viva_PL_Max || "-"}
                                   </span>
                                 </div>
                               )}
@@ -696,14 +666,9 @@ export const ResultTable = ({ student }: ResultTableProps) => {
                                     Proj
                                   </th>
                                 )}
-                                {showViva && (
+                                {showVivaPL && (
                                   <th className="text-center p-3 sm:p-4 md:p-6 font-semibold text-foreground min-w-[80px] text-sm sm:text-base">
-                                    Viva
-                                  </th>
-                                )}
-                                {showPL && (
-                                  <th className="text-center p-3 sm:p-4 md:p-6 font-semibold text-foreground min-w-[80px] text-sm sm:text-base">
-                                    PL
+                                    Viva & PL
                                   </th>
                                 )}
                                 <th className="text-center p-3 sm:p-4 md:p-6 font-semibold text-foreground min-w-[100px] text-sm sm:text-base">
@@ -740,14 +705,9 @@ export const ResultTable = ({ student }: ResultTableProps) => {
                                       {subject.Project_Max || "-"}
                                     </td>
                                   )}
-                                  {showViva && (
+                                  {showVivaPL && (
                                     <td className="text-center p-3 sm:p-4 md:p-6 font-mono text-sm sm:text-base">
-                                      {subject.Viva_Max || "-"}
-                                    </td>
-                                  )}
-                                  {showPL && (
-                                    <td className="text-center p-3 sm:p-4 md:p-6 font-mono text-sm sm:text-base">
-                                      {subject.PL_Max || "-"}
+                                      {subject.Viva_PL_Max || "-"}
                                     </td>
                                   )}
                                   <td className="text-center p-3 sm:p-4 md:p-6 font-bold text-success font-mono text-base sm:text-lg">

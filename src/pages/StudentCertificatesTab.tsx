@@ -143,8 +143,8 @@ const StudentCertificatesTab: React.FC = () => {
                 (mark.pw_obtained ?? 0) +
                 (mark.pr_obtained ?? 0) +
                 (mark.project_obtained ?? 0) +
-                (mark.viva_obtained ?? 0) +
-                (mark.pl_obtained ?? 0) ||
+                (mark.project_obtained ?? 0) +
+                (mark.viva_pl_obtained ?? 0) ||
                 null);
 
             // Calculate overall obtained if not provided
@@ -163,8 +163,7 @@ const StudentCertificatesTab: React.FC = () => {
                 (subjectInfo?.pw_max ?? 0) +
                 (subjectInfo?.pr_max ?? 0) +
                 (subjectInfo?.project_max ?? 0) +
-                (subjectInfo?.viva_max ?? 0) +
-                (subjectInfo?.pl_max ?? 0) ||
+                (subjectInfo?.viva_pl_max ?? 0) ||
                 null);
 
             const overallTotalMax =
@@ -180,8 +179,8 @@ const StudentCertificatesTab: React.FC = () => {
               PW: mark.pw_obtained,
               PR: mark.pr_obtained,
               Project: mark.project_obtained,
-              Viva: mark.viva_obtained,
-              PL: mark.pl_obtained,
+              Viva_PL: mark.viva_pl_obtained,
+              PL: null, // Removed legacy PL
               TheoryTotal: theoryTotal,
               PracticalTotal: practicalTotal,
               OverallObtained: overallObtained,
@@ -190,8 +189,7 @@ const StudentCertificatesTab: React.FC = () => {
                 mark.pw_obtained != null ||
                 mark.pr_obtained != null ||
                 mark.project_obtained != null ||
-                mark.viva_obtained != null ||
-                mark.pl_obtained != null
+                mark.viva_pl_obtained != null
                   ? "Practical"
                   : "Theory",
               // Maximum scores from subject configuration
@@ -201,8 +199,7 @@ const StudentCertificatesTab: React.FC = () => {
               PW_Max: subjectInfo?.pw_max,
               PR_Max: subjectInfo?.pr_max,
               Project_Max: subjectInfo?.project_max,
-              Viva_Max: subjectInfo?.viva_max,
-              PL_Max: subjectInfo?.pl_max,
+              Viva_PL_Max: subjectInfo?.viva_pl_max,
               TheoryTotal_Max: theoryTotalMax,
               PracticalTotal_Max: practicalTotalMax,
               OverallTotal_Max: overallTotalMax,
