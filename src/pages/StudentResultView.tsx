@@ -103,6 +103,7 @@ const StudentResultView: React.FC = () => {
     result: "",
     marks: [],
     is_published: false,
+    is_withheld: false,
     published_date: new Date().toISOString().split("T")[0],
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -173,6 +174,7 @@ const StudentResultView: React.FC = () => {
       result: studentResult.result || "",
       marks: studentResult.marks || [],
       is_published: studentResult.is_published || false,
+      is_withheld: studentResult.is_withheld || false,
       published_date:
         studentResult.published_date || new Date().toISOString().split("T")[0],
     });
@@ -312,6 +314,7 @@ const StudentResultView: React.FC = () => {
           viva_pl_obtained: mark.viva_pl_obtained,
         })),
         is_published: formData.is_published || false,
+        is_withheld: formData.is_withheld || false,
         published_date: formData.published_date || null,
       };
 
@@ -1021,6 +1024,33 @@ const StudentResultView: React.FC = () => {
                   </div>
                   <p className="text-xs text-muted-foreground">
                     Check this box to mark the result as published
+                  </p>
+                </div>
+
+                <div className="space-y-1 sm:space-y-2">
+                  <div className="flex items-center space-x-2">
+                    <input
+                      type="checkbox"
+                      id="is_withheld"
+                      checked={formData.is_withheld || false}
+                      onChange={(e) =>
+                        setFormData({
+                          ...formData,
+                          is_withheld: e.target.checked,
+                        })
+                      }
+                      className="h-4 w-4 text-destructive focus:ring-destructive border-gray-300 rounded"
+                    />
+                    <Label
+                      htmlFor="is_withheld"
+                      className="text-sm sm:text-base font-medium text-destructive"
+                    >
+                      Withheld
+                    </Label>
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Check this box to withhold the result (hides marks from
+                    student)
                   </p>
                 </div>
 

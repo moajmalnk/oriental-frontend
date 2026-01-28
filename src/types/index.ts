@@ -24,8 +24,9 @@ export interface Student {
   WhatsApp?: string | null;
   Photo?: string | null;
   CourseType: string;
-  Subjects: SubjectMark[];
+  Subjects?: SubjectMark[];
   PublishedDate?: string | null;
+  is_withheld?: boolean;
   // Legacy fields for backward compatibility
   name?: string;
   email?: string;
@@ -183,6 +184,7 @@ export interface StudentResult {
   updated_at?: string;
   is_published?: boolean;
   published_date?: string | null;
+  is_withheld?: boolean;
 }
 
 export interface StudentResultFormData {
@@ -195,6 +197,7 @@ export interface StudentResultFormData {
   marks: StudentMark[];
   is_published?: boolean;
   published_date?: string | null;
+  is_withheld?: boolean;
 }
 
 export interface Announcement {

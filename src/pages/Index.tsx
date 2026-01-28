@@ -65,7 +65,7 @@ const Index = () => {
         const timeDiff = resultDate.getTime() - now.getTime();
         const days = Math.floor(timeDiff / (1000 * 60 * 60 * 24));
         const hours = Math.floor(
-          (timeDiff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)
+          (timeDiff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60),
         );
         const minutes = Math.floor((timeDiff % (1000 * 60 * 60)) / (1000 * 60));
 
@@ -73,13 +73,13 @@ const Index = () => {
           setTimeUntilAvailable(
             `${days} day${days > 1 ? "s" : ""}, ${hours} hour${
               hours > 1 ? "s" : ""
-            }`
+            }`,
           );
         } else if (hours > 0) {
           setTimeUntilAvailable(
             `${hours} hour${hours > 1 ? "s" : ""}, ${minutes} minute${
               minutes > 1 ? "s" : ""
-            }`
+            }`,
           );
         } else {
           setTimeUntilAvailable(`${minutes} minute${minutes > 1 ? "s" : ""}`);
@@ -368,7 +368,9 @@ const Index = () => {
               {searchResult ? (
                 <div className="space-y-6 sm:space-y-8">
                   <ResultTable student={searchResult} />
-                  <PrintPDFButtons student={searchResult} />
+                  {(!searchResult.is_withheld || isAuthenticated) && (
+                    <PrintPDFButtons student={searchResult} />
+                  )}
 
                   {/* Certificate Preview - Only for authenticated users and passed students */}
                   {isAuthenticated &&

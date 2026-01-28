@@ -25,7 +25,7 @@ export class DataService {
       return response.data.filter(
         (student: any) =>
           student.CourseType === courseType ||
-          student.Course?.name?.toUpperCase().includes(courseType)
+          student.Course?.name?.toUpperCase().includes(courseType),
       );
     } catch (error) {
       console.error(`Failed to fetch ${courseType} students:`, error);
@@ -55,6 +55,7 @@ export class DataService {
         CourseType: studentData.CourseType,
         Subjects: studentData.Subjects || [],
         PublishedDate: studentData.PublishedDate || null,
+        is_withheld: studentData.is_withheld || false,
       };
 
       return transformedStudent;
@@ -77,20 +78,20 @@ export class DataService {
       const pdaStudents = allStudents.filter(
         (s: any) =>
           s.CourseType === "PDA" ||
-          s.Course?.name?.toUpperCase().includes("PDA")
+          s.Course?.name?.toUpperCase().includes("PDA"),
       );
       const dcpStudents = allStudents.filter(
         (s: any) =>
           s.CourseType === "DCP" ||
-          s.Course?.name?.toUpperCase().includes("DCP")
+          s.Course?.name?.toUpperCase().includes("DCP"),
       );
 
       const totalStudents = allStudents.length;
       const pdaPassed = pdaStudents.filter(
-        (s: any) => s.Result === "PASS"
+        (s: any) => s.Result === "PASS",
       ).length;
       const dcpPassed = dcpStudents.filter(
-        (s: any) => s.Result === "PASS"
+        (s: any) => s.Result === "PASS",
       ).length;
       const totalPassed = pdaPassed + dcpPassed;
 

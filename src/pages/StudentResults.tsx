@@ -317,6 +317,7 @@ const StudentResults: React.FC = () => {
     marks: [],
     is_published: false,
     published_date: new Date().toISOString().split("T")[0],
+    is_withheld: false,
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -554,6 +555,7 @@ const StudentResults: React.FC = () => {
       marks: [],
       is_published: false,
       published_date: new Date().toISOString().split("T")[0],
+      is_withheld: false,
     });
     setErrors({});
     setEditingResult(null);
@@ -575,6 +577,7 @@ const StudentResults: React.FC = () => {
         is_published: result.is_published || false,
         published_date:
           result.published_date || new Date().toISOString().split("T")[0],
+        is_withheld: result.is_withheld || false,
       });
       fetchSubjects(result.course);
     } else {
@@ -737,6 +740,7 @@ const StudentResults: React.FC = () => {
         })),
         is_published: formData.is_published || false,
         published_date: formData.published_date || null,
+        is_withheld: formData.is_withheld || false,
       };
 
       if (editingResult) {
@@ -2466,6 +2470,11 @@ const StudentResults: React.FC = () => {
                               Unpublished
                             </Badge>
                           )}
+                          {result.is_withheld && (
+                            <Badge variant="destructive" className="text-xs">
+                              Withheld
+                            </Badge>
+                          )}
                         </div>
                       </div>
                     </div>
@@ -2824,6 +2833,33 @@ const StudentResults: React.FC = () => {
                   </div>
                   <p className="text-xs text-muted-foreground">
                     Check this box to mark the result as published
+                  </p>
+                </div>
+
+                <div className="space-y-1 sm:space-y-2">
+                  <div className="flex items-center space-x-2">
+                    <input
+                      type="checkbox"
+                      id="is_withheld"
+                      checked={formData.is_withheld}
+                      onChange={(e) =>
+                        setFormData({
+                          ...formData,
+                          is_withheld: e.target.checked,
+                        })
+                      }
+                      className="h-4 w-4 text-destructive focus:ring-destructive border-gray-300 rounded"
+                    />
+                    <Label
+                      htmlFor="is_withheld"
+                      className="text-sm sm:text-base font-medium text-destructive"
+                    >
+                      Withheld
+                    </Label>
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Check this box to withhold the result (hides marks from
+                    student)
                   </p>
                 </div>
 
