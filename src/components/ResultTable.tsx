@@ -287,9 +287,9 @@ export const ResultTable = ({ student }: ResultTableProps) => {
                   <h2 className="text-2xl sm:text-3xl font-display font-bold text-foreground mb-1">
                     {student.Name}
                   </h2>
-                  <p className="text-muted-foreground font-medium">
+                  {/* <p className="text-muted-foreground font-medium">
                     Student Name
-                  </p>
+                  </p> */}
                 </div>
                 <div className="flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-8">
                   <div>
