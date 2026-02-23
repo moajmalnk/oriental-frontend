@@ -143,7 +143,6 @@ const StudentCertificatesTab: React.FC = () => {
                 (mark.pw_obtained ?? 0) +
                 (mark.pr_obtained ?? 0) +
                 (mark.project_obtained ?? 0) +
-                (mark.project_obtained ?? 0) +
                 (mark.viva_pl_obtained ?? 0) ||
                 null);
 

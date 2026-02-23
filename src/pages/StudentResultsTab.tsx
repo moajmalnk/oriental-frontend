@@ -202,10 +202,34 @@ const StudentResultsTab: React.FC = () => {
     // Ensure value is not negative
     const validatedValue = value !== null && value < 0 ? 0 : value;
 
-    const updatedMarks = formData.marks.map((mark) =>
-      mark.subject === subjectId ? { ...mark, [field]: validatedValue } : mark,
+    const existingMarkIndex = formData.marks.findIndex(
+      (m) => m.subject === subjectId,
     );
-    setFormData({ ...formData, marks: updatedMarks });
+
+    if (existingMarkIndex > -1) {
+      const updatedMarks = formData.marks.map((mark) =>
+        mark.subject === subjectId
+          ? { ...mark, [field]: validatedValue }
+          : mark,
+      );
+      setFormData({ ...formData, marks: updatedMarks });
+    } else {
+      // Create new mark entry on the fly
+      const subject = subjects.find((s) => s.id === subjectId);
+      const newMark: StudentMark = {
+        subject: subjectId,
+        subject_name: subject?.name || "",
+        te_obtained: null,
+        ce_obtained: null,
+        pe_obtained: null,
+        pw_obtained: null,
+        pr_obtained: null,
+        project_obtained: null,
+        viva_pl_obtained: null,
+        [field]: validatedValue,
+      };
+      setFormData({ ...formData, marks: [...formData.marks, newMark] });
+    }
   };
 
   // Remove mark
@@ -410,7 +434,15 @@ const StudentResultsTab: React.FC = () => {
   const computePracticalTotal = (m: any) => {
     const pe = typeof m.pe_obtained === "number" ? m.pe_obtained : 0;
     const pw = typeof m.pw_obtained === "number" ? m.pw_obtained : 0;
-    return typeof m.practical_total === "number" ? m.practical_total : pe + pw;
+    const pr = typeof m.pr_obtained === "number" ? m.pr_obtained : 0;
+    const proj =
+      typeof m.project_obtained === "number" ? m.project_obtained : 0;
+    const viva =
+      typeof m.viva_pl_obtained === "number" ? m.viva_pl_obtained : 0;
+
+    return typeof m.practical_total === "number"
+      ? m.practical_total
+      : pe + pw + pr + proj + viva;
   };
   const computeOverallObtained = (m: any) => {
     if (typeof m.overall_obtained === "number") return m.overall_obtained;
@@ -1039,257 +1071,269 @@ const StudentResultsTab: React.FC = () => {
                             <h4 className="font-medium">{subject.name}</h4>
                             <div className="text-sm text-muted-foreground">
                               {subject.te_max || subject.ce_max ? (
-                                <>
-                                  Theory: TE({subject.te_max || 0}) + CE(
-                                  {subject.ce_max || 0})
-                                </>
-                              ) : (
-                                <>
-                                  Practical: PE({subject.pe_max || 0}) + PW(
-                                  {subject.pw_max || 0})
-                                </>
-                              )}
+                                <div className="flex flex-wrap gap-x-2">
+                                  <span className="text-xs font-semibold uppercase text-primary/70">
+                                    Theory:
+                                  </span>
+                                  {subject.te_max ? (
+                                    <span>TE({subject.te_max})</span>
+                                  ) : null}
+                                  {subject.ce_max ? (
+                                    <span>CE({subject.ce_max})</span>
+                                  ) : null}
+                                </div>
+                              ) : null}
+                              {subject.pe_max ||
+                              subject.pw_max ||
+                              subject.pr_max ||
+                              subject.project_max ||
+                              subject.viva_pl_max ? (
+                                <div className="flex flex-wrap gap-x-2 mt-0.5">
+                                  <span className="text-xs font-semibold uppercase text-green-600/70">
+                                    Practical:
+                                  </span>
+                                  {subject.pe_max ? (
+                                    <span>PE({subject.pe_max})</span>
+                                  ) : null}
+                                  {subject.pw_max ? (
+                                    <span>PW({subject.pw_max})</span>
+                                  ) : null}
+                                  {subject.pr_max ? (
+                                    <span>PR({subject.pr_max})</span>
+                                  ) : null}
+                                  {subject.project_max ? (
+                                    <span>Proj({subject.project_max})</span>
+                                  ) : null}
+                                  {subject.viva_pl_max ? (
+                                    <span>Viva({subject.viva_pl_max})</span>
+                                  ) : null}
+                                </div>
+                              ) : null}
                             </div>
                             {errors[
                               `marks_${formData.marks.findIndex(
-                                (m) => m.subject === subject.id,
+                                (m: any) => m.subject === subject.id,
                               )}`
                             ] && (
                               <div className="text-sm text-destructive mt-1">
                                 {
                                   errors[
                                     `marks_${formData.marks.findIndex(
-                                      (m) => m.subject === subject.id,
+                                      (m: any) => m.subject === subject.id,
                                     )}`
                                   ]
                                 }
                               </div>
                             )}
                           </div>
-                          <Button
-                            type="button"
-                            variant={existingMark ? "destructive" : "outline"}
-                            size="sm"
-                            onClick={() => {
-                              if (existingMark) {
-                                removeMark(subject.id!);
-                              } else {
-                                addMark(subject.id!, subject.name);
-                              }
-                            }}
-                          >
-                            {existingMark ? "Remove" : "Add"}
-                          </Button>
+                          {existingMark && (
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              className="text-destructive hover:text-destructive hover:bg-destructive/10 h-7 px-2"
+                              onClick={() => removeMark(subject.id!)}
+                            >
+                              Clear
+                            </Button>
+                          )}
                         </div>
 
-                        {existingMark && (
-                          <div className="grid grid-cols-2 gap-3">
-                            {/* Theory subjects - show TE and CE */}
-                            {(subject.te_max || subject.ce_max) && (
-                              <>
-                                <div className="space-y-1">
-                                  <Label
-                                    htmlFor={`te_${subject.id}`}
-                                    className="text-xs"
-                                  >
-                                    TE (Theory Exam)
-                                  </Label>
-                                  <Input
-                                    id={`te_${subject.id}`}
-                                    type="number"
-                                    value={existingMark.te_obtained || ""}
-                                    onChange={(e) =>
-                                      updateMark(
-                                        subject.id!,
-                                        "te_obtained",
-                                        e.target.value
-                                          ? parseInt(e.target.value)
-                                          : null,
-                                      )
-                                    }
-                                    placeholder="0"
-                                    min="0"
-                                    max={subject.te_max || undefined}
-                                  />
-                                </div>
-                                <div className="space-y-1">
-                                  <Label
-                                    htmlFor={`ce_${subject.id}`}
-                                    className="text-xs"
-                                  >
-                                    CE (Continuous Evaluation)
-                                  </Label>
-                                  <Input
-                                    id={`ce_${subject.id}`}
-                                    type="number"
-                                    value={existingMark.ce_obtained || ""}
-                                    onChange={(e) =>
-                                      updateMark(
-                                        subject.id!,
-                                        "ce_obtained",
-                                        e.target.value
-                                          ? parseInt(e.target.value)
-                                          : null,
-                                      )
-                                    }
-                                    placeholder="0"
-                                    min="0"
-                                    max={subject.ce_max || undefined}
-                                  />
-                                </div>
-                              </>
-                            )}
-
-                            {/* Practical subjects - show PE, PW, PR, Project, Viva, PL */}
-                            {(subject.pe_max ||
-                              subject.pw_max ||
-                              subject.pr_max ||
-                              subject.project_max ||
-                              subject.viva_pl_max) && (
-                              <>
-                                {subject.pe_max && (
-                                  <div className="space-y-1">
-                                    <Label
-                                      htmlFor={`pe_${subject.id}`}
-                                      className="text-xs"
-                                    >
-                                      PE (Practical Exam)
-                                    </Label>
-                                    <Input
-                                      id={`pe_${subject.id}`}
-                                      type="number"
-                                      value={existingMark.pe_obtained || ""}
-                                      onChange={(e) =>
-                                        updateMark(
-                                          subject.id!,
-                                          "pe_obtained",
-                                          e.target.value
-                                            ? parseInt(e.target.value)
-                                            : null,
-                                        )
-                                      }
-                                      placeholder="0"
-                                      min="0"
-                                      max={subject.pe_max || undefined}
-                                    />
-                                  </div>
-                                )}
-                                {subject.pw_max && (
-                                  <div className="space-y-1">
-                                    <Label
-                                      htmlFor={`pw_${subject.id}`}
-                                      className="text-xs"
-                                    >
-                                      PW (Practical Work)
-                                    </Label>
-                                    <Input
-                                      id={`pw_${subject.id}`}
-                                      type="number"
-                                      value={existingMark.pw_obtained || ""}
-                                      onChange={(e) =>
-                                        updateMark(
-                                          subject.id!,
-                                          "pw_obtained",
-                                          e.target.value
-                                            ? parseInt(e.target.value)
-                                            : null,
-                                        )
-                                      }
-                                      placeholder="0"
-                                      min="0"
-                                      max={subject.pw_max || undefined}
-                                    />
-                                  </div>
-                                )}
-                                {subject.pr_max && (
-                                  <div className="space-y-1">
-                                    <Label
-                                      htmlFor={`pr_${subject.id}`}
-                                      className="text-xs"
-                                    >
-                                      PR (Practical Record)
-                                    </Label>
-                                    <Input
-                                      id={`pr_${subject.id}`}
-                                      type="number"
-                                      value={existingMark.pr_obtained || ""}
-                                      onChange={(e) =>
-                                        updateMark(
-                                          subject.id!,
-                                          "pr_obtained",
-                                          e.target.value
-                                            ? parseInt(e.target.value)
-                                            : null,
-                                        )
-                                      }
-                                      placeholder="0"
-                                      min="0"
-                                      max={subject.pr_max || undefined}
-                                    />
-                                  </div>
-                                )}
-                                {subject.project_max && (
-                                  <div className="space-y-1">
-                                    <Label
-                                      htmlFor={`proj_${subject.id}`}
-                                      className="text-xs"
-                                    >
-                                      Project
-                                    </Label>
-                                    <Input
-                                      id={`proj_${subject.id}`}
-                                      type="number"
-                                      value={
-                                        existingMark.project_obtained || ""
-                                      }
-                                      onChange={(e) =>
-                                        updateMark(
-                                          subject.id!,
-                                          "project_obtained",
-                                          e.target.value
-                                            ? parseInt(e.target.value)
-                                            : null,
-                                        )
-                                      }
-                                      placeholder="0"
-                                      min="0"
-                                      max={subject.project_max || undefined}
-                                    />
-                                  </div>
-                                )}
-                                {subject.viva_pl_max && (
-                                  <div className="space-y-1">
-                                    <Label
-                                      htmlFor={`viva_pl_${subject.id}`}
-                                      className="text-xs"
-                                    >
-                                      Viva & PL
-                                    </Label>
-                                    <Input
-                                      id={`viva_pl_${subject.id}`}
-                                      type="number"
-                                      value={
-                                        existingMark.viva_pl_obtained || ""
-                                      }
-                                      onChange={(e) =>
-                                        updateMark(
-                                          subject.id!,
-                                          "viva_pl_obtained",
-                                          e.target.value
-                                            ? parseInt(e.target.value)
-                                            : null,
-                                        )
-                                      }
-                                      placeholder="0"
-                                      min="0"
-                                      max={subject.viva_pl_max || undefined}
-                                    />
-                                  </div>
-                                )}
-                              </>
-                            )}
+                        <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                          <div className="space-y-1">
+                            <Label
+                              htmlFor={`te_${subject.id}`}
+                              className="text-xs"
+                            >
+                              TE (Theory Exam)
+                            </Label>
+                            <Input
+                              id={`te_${subject.id}`}
+                              type="number"
+                              value={existingMark?.te_obtained ?? ""}
+                              onChange={(e) =>
+                                updateMark(
+                                  subject.id!,
+                                  "te_obtained",
+                                  e.target.value
+                                    ? parseInt(e.target.value)
+                                    : null,
+                                )
+                              }
+                              placeholder={
+                                subject.te_max ? `0 / ${subject.te_max}` : "0"
+                              }
+                              min="0"
+                              max={subject.te_max || undefined}
+                            />
                           </div>
-                        )}
+                          <div className="space-y-1">
+                            <Label
+                              htmlFor={`ce_${subject.id}`}
+                              className="text-xs"
+                            >
+                              CE (Continuous Evaluation)
+                            </Label>
+                            <Input
+                              id={`ce_${subject.id}`}
+                              type="number"
+                              value={existingMark?.ce_obtained ?? ""}
+                              onChange={(e) =>
+                                updateMark(
+                                  subject.id!,
+                                  "ce_obtained",
+                                  e.target.value
+                                    ? parseInt(e.target.value)
+                                    : null,
+                                )
+                              }
+                              placeholder={
+                                subject.ce_max ? `0 / ${subject.ce_max}` : "0"
+                              }
+                              min="0"
+                              max={subject.ce_max || undefined}
+                            />
+                          </div>
+                          <div className="space-y-1">
+                            <Label
+                              htmlFor={`pe_${subject.id}`}
+                              className="text-xs"
+                            >
+                              PE (Practical Exam)
+                            </Label>
+                            <Input
+                              id={`pe_${subject.id}`}
+                              type="number"
+                              value={existingMark?.pe_obtained ?? ""}
+                              onChange={(e) =>
+                                updateMark(
+                                  subject.id!,
+                                  "pe_obtained",
+                                  e.target.value
+                                    ? parseInt(e.target.value)
+                                    : null,
+                                )
+                              }
+                              placeholder={
+                                subject.pe_max ? `0 / ${subject.pe_max}` : "0"
+                              }
+                              min="0"
+                              max={subject.pe_max || undefined}
+                            />
+                          </div>
+                          <div className="space-y-1">
+                            <Label
+                              htmlFor={`pw_${subject.id}`}
+                              className="text-xs"
+                            >
+                              PW (Practical Work)
+                            </Label>
+                            <Input
+                              id={`pw_${subject.id}`}
+                              type="number"
+                              value={existingMark?.pw_obtained ?? ""}
+                              onChange={(e) =>
+                                updateMark(
+                                  subject.id!,
+                                  "pw_obtained",
+                                  e.target.value
+                                    ? parseInt(e.target.value)
+                                    : null,
+                                )
+                              }
+                              placeholder={
+                                subject.pw_max ? `0 / ${subject.pw_max}` : "0"
+                              }
+                              min="0"
+                              max={subject.pw_max || undefined}
+                            />
+                          </div>
+                          <div className="space-y-1">
+                            <Label
+                              htmlFor={`pr_${subject.id}`}
+                              className="text-xs"
+                            >
+                              PR (Practical Record)
+                            </Label>
+                            <Input
+                              id={`pr_${subject.id}`}
+                              type="number"
+                              value={existingMark?.pr_obtained ?? ""}
+                              onChange={(e) =>
+                                updateMark(
+                                  subject.id!,
+                                  "pr_obtained",
+                                  e.target.value
+                                    ? parseInt(e.target.value)
+                                    : null,
+                                )
+                              }
+                              placeholder={
+                                subject.pr_max ? `0 / ${subject.pr_max}` : "0"
+                              }
+                              min="0"
+                              max={subject.pr_max || undefined}
+                            />
+                          </div>
+                          <div className="space-y-1">
+                            <Label
+                              htmlFor={`project_${subject.id}`}
+                              className="text-xs"
+                            >
+                              Project
+                            </Label>
+                            <Input
+                              id={`project_${subject.id}`}
+                              type="number"
+                              value={existingMark?.project_obtained ?? ""}
+                              onChange={(e) =>
+                                updateMark(
+                                  subject.id!,
+                                  "project_obtained",
+                                  e.target.value
+                                    ? parseInt(e.target.value)
+                                    : null,
+                                )
+                              }
+                              placeholder={
+                                subject.project_max
+                                  ? `0 / ${subject.project_max}`
+                                  : "0"
+                              }
+                              min="0"
+                              max={subject.project_max || undefined}
+                            />
+                          </div>
+                          <div className="space-y-1">
+                            <Label
+                              htmlFor={`viva_pl_${subject.id}`}
+                              className="text-xs"
+                            >
+                              Viva & PL
+                            </Label>
+                            <Input
+                              id={`viva_pl_${subject.id}`}
+                              type="number"
+                              value={existingMark?.viva_pl_obtained ?? ""}
+                              onChange={(e) =>
+                                updateMark(
+                                  subject.id!,
+                                  "viva_pl_obtained",
+                                  e.target.value
+                                    ? parseInt(e.target.value)
+                                    : null,
+                                )
+                              }
+                              placeholder={
+                                subject.viva_pl_max
+                                  ? `0 / ${subject.viva_pl_max}`
+                                  : "0"
+                              }
+                              min="0"
+                              max={subject.viva_pl_max || undefined}
+                            />
+                          </div>
+                        </div>
                       </Card>
                     );
                   })}
